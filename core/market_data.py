@@ -23,12 +23,15 @@ class MarketDataFeed:
         self.interval_seconds = interval_seconds
         self._random = random.Random(seed)
 
+    def step(self) -> float:
+        """Advance and publish one simulated BTC price. Returns the new price."""
+        self.price += self._random.uniform(-1, 1)
+        price = round(self.price, 2)
+        self.event_bus.publish("MARKET_PRICE", {"symbol": "BTC", "price": price})
+        return price
+
     def start(self, stop_event: threading.Event) -> None:
         """Publish simulated BTC prices until stop_event is set."""
         while not stop_event.is_set():
-            self.price += self._random.uniform(-1, 1)
-            self.event_bus.publish(
-                "MARKET_PRICE",
-                {"symbol": "BTC", "price": round(self.price, 2)},
-            )
+            self.step()
             stop_event.wait(self.interval_seconds)

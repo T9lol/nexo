@@ -27,6 +27,19 @@ py -3 main.py --mode backtest
 py -3 main.py --mode live --duration 10 --seed 42
 ```
 
+## Dashboard (UI-1)
+
+Install the optional product layer and launch the local dashboard:
+
+```powershell
+py -3 -m pip install -e ".[dashboard]"
+py -3 -m uvicorn ui.dashboard:app --reload
+```
+
+Open `http://127.0.0.1:8000`. The UI-1 dashboard includes a live equity curve,
+portfolio allocation, simulated executions, and adaptive strategy state. It uses
+a deterministic mock provider; connecting it to the NeXo engine is the UI-2 scope.
+
 > **Scope:** NeXo is an educational research simulator. It does not connect to
 > an exchange, place real orders, or provide financial advice.
 

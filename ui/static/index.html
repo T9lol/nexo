@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="NeXo trading system dashboard" />
+    <title>NeXo Command Center</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2214%22 fill=%22%2307100f%22/><path d=%22M17 44V31h8v13zm11 0V22h8v22zm11 0V13h8v31z%22 fill=%22%2356e6a6%22/></svg>" />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <main class="shell">
+      <header class="topbar">
+        <div class="brand-wrap">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <div>
+            <div class="eyebrow">TRADING INTELLIGENCE</div>
+            <h1>NeXo <span>Command Center</span></h1>
+          </div>
+        </div>
+        <div class="status-cluster">
+          <div id="mode-chip" class="mode-chip">STARTING…</div>
+          <div id="connection" class="connection">
+            <span class="pulse"></span>
+            <span>Connecting</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="metrics" aria-label="Portfolio summary">
+        <article class="metric primary">
+          <div class="metric-label">TOTAL EQUITY</div>
+          <div id="equity" class="metric-value">$10,000.00</div>
+          <div id="pnl" class="metric-delta neutral">+$0.00 all time</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">BTC PRICE</div>
+          <div id="price" class="metric-value compact">$100.00</div>
+          <div class="metric-note">SIMULATED MARKET</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">POSITION</div>
+          <div id="position" class="metric-value compact">0 BTC</div>
+          <div id="position-value" class="metric-note">$0.00 EXPOSURE</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">ACTIVE STRATEGY</div>
+          <div class="strategy-inline">
+            <span id="active-strategy" class="strategy-avatar">A</span>
+            <span id="active-label" class="metric-value compact">Strategy A</span>
+          </div>
+          <div class="metric-note"><span class="tiny-dot"></span> ADAPTIVE ROUTING</div>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <article class="panel chart-panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-kicker">PERFORMANCE</div>
+              <h2>Equity curve</h2>
+            </div>
+            <div id="tick-chip" class="time-chip">LIVE</div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="equity-chart" aria-label="Equity curve chart"></canvas>
+            <div id="chart-empty" class="chart-empty">Collecting market ticks…</div>
+          </div>
+          <div class="chart-footer">
+            <span>START <strong>$10,000</strong></span>
+            <span id="chart-range">RANGE <strong>$0.00</strong></span>
+            <span id="last-update">UPDATED —</span>
+          </div>
+        </article>
+
+        <article class="panel positions-panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-kicker">STATE</div>
+              <h2>Portfolio</h2>
+            </div>
+            <div class="icon-button" aria-hidden="true">◎</div>
+          </div>
+          <div class="allocation">
+            <div class="allocation-ring" id="allocation-ring">
+              <div><strong id="allocation-percent">0%</strong><span>BTC</span></div>
+            </div>
+            <div class="allocation-legend">
+              <div><span class="legend-dot btc"></span><span>BTC</span><strong id="btc-value">$0.00</strong></div>
+              <div><span class="legend-dot cash"></span><span>Cash</span><strong id="cash-value">$10,000.00</strong></div>
+            </div>
+          </div>
+          <div class="state-rows">
+            <div><span>Symbol</span><strong>BTC / USD</strong></div>
+            <div><span>Units held</span><strong id="units-held">0.0000</strong></div>
+            <div><span>Available cash</span><strong id="cash-row">$10,000.00</strong></div>
+            <div><span>Risk status</span><strong class="risk-ok"><i></i> Within limits</strong></div>
+          </div>
+        </article>
+
+        <article class="panel trades-panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-kicker">EXECUTION</div>
+              <h2>Live trades</h2>
+            </div>
+            <div id="trade-count" class="time-chip">0 FILLS</div>
+          </div>
+          <div class="trade-table-head">
+            <span>TIME</span><span>SIDE</span><span>STRATEGY</span><span>SIZE</span><span>PRICE</span>
+          </div>
+          <div id="trade-list" class="trade-list">
+            <div class="empty-state">
+              <div class="empty-icon">↯</div>
+              <strong>Waiting for a signal</strong>
+              <span>New executions will appear here.</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel strategies-panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-kicker">INTELLIGENCE</div>
+              <h2>Strategy state</h2>
+            </div>
+            <div class="icon-button" aria-hidden="true">⌁</div>
+          </div>
+          <div id="strategy-list" class="strategy-list"></div>
+          <div class="strategy-footnote">
+            Selection = cumulative reward × adaptive weight
+          </div>
+        </article>
+      </section>
+
+      <footer>
+        <span id="footer-brand">NeXo</span>
+        <span id="footer-mode">Connecting to provider…</span>
+        <a href="/docs" target="_blank" rel="noreferrer">API Docs ↗</a>
+      </footer>
+    </main>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>
