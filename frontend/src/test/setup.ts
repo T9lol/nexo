@@ -6,6 +6,17 @@ afterEach(() => {
   cleanup();
 });
 
+// jsdom lacks ResizeObserver, which Recharts' ResponsiveContainer relies on.
+if (!window.ResizeObserver) {
+  class ResizeObserverStub {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  }
+  window.ResizeObserver =
+    ResizeObserverStub as unknown as typeof ResizeObserver;
+}
+
 // jsdom does not implement matchMedia; provide a minimal stub so the theme
 // provider can read the system preference during tests.
 if (!window.matchMedia) {
