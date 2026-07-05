@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="NeXo — quantitative trading terminal" />
+    <meta name="color-scheme" content="light dark" />
+    <title>NeXo Terminal</title>
+    <script>
+      // Apply the persisted theme before paint to avoid a flash of the wrong theme.
+      (function () {
+        try {
+          var stored = localStorage.getItem('nexo-theme');
+          var systemDark = window.matchMedia(
+            '(prefers-color-scheme: dark)',
+          ).matches;
+          var dark = stored ? stored === 'dark' || (stored === 'system' && systemDark) : systemDark;
+          document.documentElement.classList.toggle('dark', dark);
+        } catch (e) {
+          /* no-op: default class stays */
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

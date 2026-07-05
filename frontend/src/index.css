@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Design tokens. Every color is an HSL channel triplet so Tailwind's
+ * `hsl(var(--x) / <alpha-value>)` mapping can apply opacity. Light is the
+ * default; `.dark` on <html> switches the palette. Institutional, calm:
+ * slate surfaces, emerald positive, red negative, amber warning.
+ */
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 222 24% 12%;
+
+    --surface: 0 0% 100%;
+    --surface-foreground: 222 24% 12%;
+
+    --muted: 214 20% 94%;
+    --muted-foreground: 218 12% 42%;
+
+    --border: 216 16% 88%;
+    --input: 216 16% 84%;
+    --ring: 158 72% 38%;
+
+    --primary: 158 72% 34%;
+    --primary-foreground: 158 60% 98%;
+
+    --positive: 152 62% 34%;
+    --positive-foreground: 152 60% 98%;
+
+    --negative: 358 68% 48%;
+    --negative-foreground: 358 60% 98%;
+
+    --warning: 38 88% 46%;
+    --warning-foreground: 38 90% 8%;
+
+    --radius: 0.6rem;
+  }
+
+  .dark {
+    --background: 222 28% 8%;
+    --foreground: 210 20% 92%;
+
+    --surface: 222 24% 11%;
+    --surface-foreground: 210 20% 92%;
+
+    --muted: 220 18% 17%;
+    --muted-foreground: 216 14% 62%;
+
+    --border: 220 16% 20%;
+    --input: 220 16% 24%;
+    --ring: 158 64% 46%;
+
+    --primary: 158 64% 44%;
+    --primary-foreground: 160 40% 8%;
+
+    --positive: 152 58% 46%;
+    --positive-foreground: 160 40% 8%;
+
+    --negative: 358 70% 60%;
+    --negative-foreground: 358 20% 8%;
+
+    --warning: 38 92% 56%;
+    --warning-foreground: 38 90% 8%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply antialiased;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings:
+      'cv11',
+      'ss01';
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Numeric data reads better with tabular figures. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  .skeleton-shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background-image: linear-gradient(
+      90deg,
+      transparent,
+      hsl(var(--foreground) / 0.06),
+      transparent
+    );
+    animation: shimmer 1.6s infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-shimmer::after {
+      animation: none;
+    }
+  }
+}
