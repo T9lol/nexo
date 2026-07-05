@@ -62,9 +62,11 @@ h1 span { color: #9aaca6; font-weight: 450; }
 .mode-chip, .time-chip { border: 1px solid var(--border); color: var(--muted); border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: .09em; padding: 8px 11px; }
 .connection { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); min-width: 94px; }
 .connection.online { color: var(--green); }
+.connection.warn { color: var(--amber); }
 .connection.error { color: var(--red); }
 .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
 .online .pulse { background: var(--green); box-shadow: 0 0 0 5px rgba(86,230,166,.1), 0 0 12px var(--green); animation: pulse 2s infinite; }
+.warn .pulse { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
 .error .pulse { background: var(--red); }
 @keyframes pulse { 50% { box-shadow: 0 0 0 8px transparent, 0 0 16px var(--green); } }
 
@@ -74,6 +76,9 @@ h1 span { color: #9aaca6; font-weight: 450; }
 .metric.primary::after { content: ""; position: absolute; inset: auto 18px 0 auto; width: 100px; height: 80px; background: radial-gradient(circle at bottom, rgba(86,230,166,.12), transparent 70%); }
 .metric-value { font-variant-numeric: tabular-nums; font-size: 31px; line-height: 1.2; margin-top: 10px; font-weight: 650; letter-spacing: -.04em; }
 .metric-value.compact { font-size: 23px; letter-spacing: -.025em; }
+@keyframes valueflash { 0% { color: var(--green); } 100% { color: var(--text); } }
+.metric-value.flash { animation: valueflash .6s ease-out; }
+@media (prefers-reduced-motion: reduce) { .metric-value.flash { animation: none; } }
 .metric-delta { display: inline-block; margin-top: 8px; font-size: 12px; font-weight: 650; }
 .metric-delta.positive { color: var(--green); }
 .metric-delta.negative { color: var(--red); }

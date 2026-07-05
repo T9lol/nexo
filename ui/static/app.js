@@ -8,6 +8,20 @@ const money = (value) => new Intl.NumberFormat("en-US", {
 
 const signedMoney = (value) => `${value >= 0 ? "+" : ""}${money(value)}`;
 
+// Subtle flash when a live value changes (CSS disables it under reduced motion).
+function flash(el) {
+  if (!el) return;
+  el.classList.remove("flash");
+  void el.offsetWidth; // force reflow to restart the animation
+  el.classList.add("flash");
+}
+
+function setValue(el, text) {
+  if (!el) return;
+  if (el.textContent && el.textContent !== text) flash(el);
+  el.textContent = text;
+}
+
 function updateConnection(status, label) {
   const node = $("connection");
   node.className = `connection ${status}`;
@@ -33,8 +47,8 @@ function updateMode(state) {
 
 function updateMetrics(state) {
   const { portfolio, market, selected_strategy: selected } = state;
-  $("equity").textContent = money(portfolio.equity);
-  $("price").textContent = money(market.price);
+  setValue($("equity"), money(portfolio.equity));
+  setValue($("price"), money(market.price));
   $("position").textContent = `${portfolio.asset.toFixed(2)} ${market.symbol}`;
   $("position-value").textContent = `${money(portfolio.asset * market.price)} EXPOSURE`;
   $("active-strategy").textContent = selected;
@@ -241,7 +255,9 @@ async function sendCommand(path, body, pendingLabel) {
     showControlStatus(`Command failed: ${error.message}`, "error");
   } finally {
     setPending(false);
-    refresh();                                // authoritative resync
+    // The next WebSocket snapshot is authoritative; only poll if streaming is
+    // not currently the live transport (e.g. during fallback).
+    if (connState !== "live") pollOnce();
   }
 }
 
@@ -332,27 +348,150 @@ function wireControls() {
 }
 wireControls();
 
-async function refresh() {
+// ---- UI-5 realtime transport (WebSocket + graceful HTTP fallback) ----
+const CONN = {
+  base: 700,            // reconnect backoff base (ms)
+  cap: 12000,           // backoff cap (ms)
+  maxWsAttempts: 5,     // attempts before falling back to polling
+  fallbackPoll: 2500,   // fallback /api/state interval (ms)
+  fallbackRetry: 6000,  // how often to retry WebSocket while in fallback (ms)
+  staleAfter: 8000,     // ms without any message => stale
+};
+
+let latestState = null;
+let lastSeq = -1;
+let lastMessageAt = 0;
+let connState = "connecting";
+let transport = "ws";       // "ws" | "fallback"
+let ws = null;
+let wsAttempts = 0;
+let reconnectTimer = null;
+let fallbackPollTimer = null;
+let fallbackRetryTimer = null;
+
+const CONN_LABELS = {
+  connecting: ["", "Connecting"],
+  live: ["online", "Live"],
+  reconnecting: ["warn", "Reconnecting…"],
+  fallback: ["warn", "Fallback polling"],
+  disconnected: ["error", "Disconnected"],
+};
+
+function isStale() {
+  return lastMessageAt > 0 && Date.now() - lastMessageAt > CONN.staleAfter;
+}
+
+function setConnection(state) {
+  connState = state;
+  const [cls, label] = CONN_LABELS[state] || ["", state];
+  if (state === "live" && isStale()) {
+    updateConnection("warn", "Live · stale");
+  } else {
+    updateConnection(cls, label);
+  }
+}
+
+function applyState(state) {
+  if (!state) return;
+  latestState = state;
+  if (document.hidden) return;   // defer rendering while hidden; keep latest
+  updateMode(state);
+  renderControl(state.control);
+  updateMetrics(state);
+  updateTrades(state.trades);
+  updateStrategies(state.strategies, state.selected_strategy);
+  drawChart(state.equity_curve);
+}
+
+function wsUrl() {
+  const scheme = location.protocol === "https:" ? "wss:" : "ws:";
+  return `${scheme}//${location.host}/ws`;
+}
+
+function handleMessage(event) {
+  let msg;
+  try { msg = JSON.parse(event.data); } catch (_) { return; }
+  lastMessageAt = Date.now();
+  if (msg.type === "heartbeat") { setConnection("live"); return; }
+  if (msg.type !== "state") return;
+  if (typeof msg.sequence === "number" && msg.sequence <= lastSeq) return; // stale/out-of-order
+  lastSeq = msg.sequence;
+  applyState(msg.data);
+  setConnection("live");
+}
+
+function clearFallback() {
+  if (fallbackPollTimer) { clearInterval(fallbackPollTimer); fallbackPollTimer = null; }
+  if (fallbackRetryTimer) { clearInterval(fallbackRetryTimer); fallbackRetryTimer = null; }
+}
+
+function connectWs() {
+  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+  try { if (ws) { ws.onclose = null; ws.close(); } } catch (_) { /* ignore */ }
+  if (connState !== "fallback") {
+    setConnection(wsAttempts === 0 ? "connecting" : "reconnecting");
+  }
+  let socket;
+  try { socket = new WebSocket(wsUrl()); } catch (_) { scheduleReconnect(); return; }
+  ws = socket;
+  socket.onopen = () => {
+    wsAttempts = 0;
+    transport = "ws";
+    clearFallback();
+    setConnection("live");
+  };
+  socket.onmessage = handleMessage;
+  socket.onclose = () => {
+    if (ws === socket) ws = null;
+    if (transport === "fallback") return;   // fallback retry loop owns reconnection
+    scheduleReconnect();
+  };
+}
+
+function scheduleReconnect() {
+  wsAttempts += 1;
+  if (wsAttempts > CONN.maxWsAttempts) { enterFallback(); return; }
+  setConnection("reconnecting");
+  const backoff = Math.min(CONN.cap, CONN.base * 2 ** (wsAttempts - 1));
+  const jitter = Math.random() * 0.3 * backoff;   // capped exponential backoff + jitter
+  reconnectTimer = setTimeout(connectWs, backoff + jitter);
+}
+
+function enterFallback() {
+  transport = "fallback";
+  setConnection("fallback");
+  clearFallback();
+  pollOnce();
+  fallbackPollTimer = setInterval(pollOnce, CONN.fallbackPoll);
+  // Periodically probe the WebSocket; onopen promotes us back to streaming.
+  fallbackRetryTimer = setInterval(() => { if (transport === "fallback") connectWs(); }, CONN.fallbackRetry);
+}
+
+async function pollOnce() {
   try {
     const response = await fetch("/api/state", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const state = await response.json();
-    updateMode(state);
-    renderControl(state.control);
-    updateMetrics(state);
-    updateTrades(state.trades);
-    updateStrategies(state.strategies, state.selected_strategy);
-    drawChart(state.equity_curve);
-    updateConnection("online", "System live");
-  } catch (error) {
-    console.error("Dashboard refresh failed", error);
-    updateConnection("error", "Disconnected");
+    lastMessageAt = Date.now();
+    applyState(state);
+    if (transport === "fallback") setConnection("fallback");
+  } catch (_) {
+    setConnection("disconnected");
   }
 }
+
+function checkStale() {
+  if (connState === "live") setConnection("live");  // recompute stale suffix
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && latestState) applyState(latestState);
+});
 
 // Resize only redraws the last known data - no extra network request.
 window.addEventListener("resize", () => {
   if (chart.points.length) drawChart(chart.points);
 });
-refresh();
-setInterval(refresh, 1000);
+
+setInterval(checkStale, 2000);
+connectWs();

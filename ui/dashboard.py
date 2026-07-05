@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -25,19 +25,27 @@ from ui.providers import (  # noqa: F401
     build_provider,
     utc_time,
 )
+from ui.ws import ConnectionManager, stream
 
 
 STATIC_DIR = Path(__file__).parent / "static"
 
 provider: DashboardProvider = build_provider()
+# Set during lifespan startup so it binds to the active provider (respecting
+# test-time monkeypatching of `provider`).
+manager: ConnectionManager | None = None
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    global manager
     provider.start()
+    manager = ConnectionManager(provider)
+    manager.start()
     try:
         yield
     finally:
+        await manager.stop()
         provider.stop()
 
 
@@ -68,6 +76,15 @@ def get_trades() -> list[dict[str, Any]]:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.websocket("/ws")
+async def ws_state(websocket: WebSocket) -> None:
+    """Canonical real-time state stream. Control stays on HTTP POST routes."""
+    if manager is None:  # pragma: no cover - startup guard
+        await websocket.close(code=1013)
+        return
+    await stream(websocket, manager)
 
 
 # --- UI-4 control commands (explicit, validated, idempotent) ---------------
