@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/kriswu5240-collab/nexo/actions/workflows/tests.yml/badge.svg)](https://github.com/kriswu5240-collab/nexo/actions/workflows/tests.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
-![Version](https://img.shields.io/badge/version-0.1.0-4C1)
+![Version](https://img.shields.io/badge/version-1.1.0-4C1)
 ![Dependencies](https://img.shields.io/badge/runtime_dependencies-0-success)
 
 NeXo is a modular quantitative-trading simulator built to demonstrate how an
@@ -26,6 +26,19 @@ py -3 main.py --mode compare
 py -3 main.py --mode backtest
 py -3 main.py --mode live --duration 10 --seed 42
 ```
+
+## Dashboard (UI-1)
+
+Install the optional product layer and launch the local dashboard:
+
+```powershell
+py -3 -m pip install -e ".[dashboard]"
+py -3 -m uvicorn ui.dashboard:app --reload
+```
+
+Open `http://127.0.0.1:8000`. The UI-1 dashboard includes a live equity curve,
+portfolio allocation, simulated executions, and adaptive strategy state. It uses
+a deterministic mock provider; connecting it to the NeXo engine is the UI-2 scope.
 
 > **Scope:** NeXo is an educational research simulator. It does not connect to
 > an exchange, place real orders, or provide financial advice.
