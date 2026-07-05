@@ -2,7 +2,7 @@
 
 [![tests](https://github.com/kriswu5240-collab/nexo/actions/workflows/tests.yml/badge.svg)](https://github.com/kriswu5240-collab/nexo/actions/workflows/tests.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
-![Version](https://img.shields.io/badge/version-0.1.0-4C1)
+![Version](https://img.shields.io/badge/version-1.1.0-4C1)
 ![Dependencies](https://img.shields.io/badge/runtime_dependencies-0-success)
 
 NeXo is a modular quantitative-trading simulator built to demonstrate how an

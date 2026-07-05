@@ -3,10 +3,11 @@
 ## Current state
 
 - Repository: `kriswu5240-collab/nexo`
-- Stable public release: `v1.0` at commit `837abd5`
+- Previous stable release: `v1.0` at commit `837abd5`
+- Current release target: `v1.1`
 - Current local branch: `ui/dashboard-mvp`
 - This branch contains uncommitted UI-1 work. Inspect `git status` and preserve it.
-- Do not push, merge, tag, release, or modify the public v1.0 without explicit user approval.
+- Do not push, merge, tag, or release without explicit user approval.
 
 ## Existing product layer (UI-1)
 

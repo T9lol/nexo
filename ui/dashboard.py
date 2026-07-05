@@ -51,7 +51,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(
     title="NeXo Dashboard API",
-    version="0.2.0",
+    version="1.1.0",
     description="Product UI over a pluggable NeXo state provider.",
     lifespan=lifespan,
 )
