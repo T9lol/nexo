@@ -15,7 +15,8 @@ function updateConnection(status, label) {
 }
 
 const MODE_LABELS = {
-  "UI-2 runtime": { chip: "UI-2 · LIVE RUNTIME", footer: "Runtime provider · live NeXo engine (read-only)" },
+  "UI-3 runtime": { chip: "UI-3 · RUNTIME", footer: "Runtime provider · live NeXo engine (read-only)" },
+  "UI-2 runtime": { chip: "UI-2 · RUNTIME", footer: "Runtime provider · live NeXo engine (read-only)" },
   "UI-1 simulation": { chip: "UI-1 · SIMULATION", footer: "Mock provider · deterministic demo" },
 };
 
@@ -32,7 +33,7 @@ function updateMetrics(state) {
   const { portfolio, market, selected_strategy: selected } = state;
   $("equity").textContent = money(portfolio.equity);
   $("price").textContent = money(market.price);
-  $("position").textContent = `${portfolio.asset.toFixed(2)} BTC`;
+  $("position").textContent = `${portfolio.asset.toFixed(2)} ${market.symbol}`;
   $("position-value").textContent = `${money(portfolio.asset * market.price)} EXPOSURE`;
   $("active-strategy").textContent = selected;
   $("active-label").textContent = `Strategy ${selected}`;
@@ -62,17 +63,22 @@ function updateTrades(trades) {
       <span class="muted">${new Date(trade.time).toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" })}</span>
       <span><b class="side ${trade.action.toLowerCase()}">${trade.action}</b></span>
       <span class="strategy-tag">Strategy ${trade.strategy}</span>
-      <span>${trade.amount.toFixed(2)} BTC</span>
+      <span>${trade.amount.toFixed(2)} ${trade.symbol}</span>
       <span>${money(trade.price)}</span>
     </div>
   `).join("");
 }
 
+// Adaptive score is the selection metric the runtime evaluator exposes; fall
+// back to reward x weight for older payloads that omit it.
+const adaptiveOf = (item) =>
+  typeof item.adaptive === "number" ? item.adaptive : item.score * item.weight;
+
 function updateStrategies(strategies, selected) {
   const entries = Object.entries(strategies);
-  const maxScore = Math.max(...entries.map(([, item]) => Math.abs(item.score * item.weight)), 1);
+  const maxScore = Math.max(...entries.map(([, item]) => Math.abs(adaptiveOf(item))), 1);
   $("strategy-list").innerHTML = entries.map(([name, item]) => {
-    const adaptive = item.score * item.weight;
+    const adaptive = adaptiveOf(item);
     const width = Math.max(4, (Math.abs(adaptive) / maxScore) * 100);
     const active = name === selected;
     return `
@@ -86,40 +92,67 @@ function updateStrategies(strategies, selected) {
         <div class="strategy-stats">
           <div><span>REWARD</span><strong>${item.score >= 0 ? "+" : ""}${item.score.toFixed(2)}</strong></div>
           <div><span>WEIGHT</span><strong>${item.weight.toFixed(4)}</strong></div>
+          <div><span>ADAPTIVE</span><strong>${adaptive >= 0 ? "+" : ""}${adaptive.toFixed(2)}</strong></div>
           <div><span>UPDATES</span><strong>${item.updates}</strong></div>
         </div>
       </div>`;
   }).join("");
 }
 
+// A single persistent Canvas context. We only reallocate the backing store when
+// the element's pixel size actually changes, then redraw the data each poll -
+// the native-Canvas equivalent of updating a chart instance in place.
+const chart = { canvas: null, ctx: null, w: 0, h: 0, dpr: 1, points: [] };
+
+function syncChartSize() {
+  if (!chart.canvas) {
+    chart.canvas = $("equity-chart");
+    chart.ctx = chart.canvas.getContext("2d");
+  }
+  const rect = chart.canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.max(1, Math.floor(rect.width));
+  const h = Math.max(1, Math.floor(rect.height));
+  if (w !== chart.w || h !== chart.h || dpr !== chart.dpr) {
+    chart.w = w;
+    chart.h = h;
+    chart.dpr = dpr;
+    chart.canvas.width = Math.floor(w * dpr);
+    chart.canvas.height = Math.floor(h * dpr);
+  }
+}
+
 function drawChart(points) {
-  const canvas = $("equity-chart");
-  const empty = $("chart-empty");
+  chart.points = points;
   $("tick-chip").textContent = `LIVE · ${points.length} ${points.length === 1 ? "TICK" : "TICKS"}`;
+
+  const values = points.map((point) => point.value);
+  if (values.length) {
+    $("chart-latest").innerHTML = `LATEST <strong>${money(values[values.length - 1])}</strong>`;
+    $("chart-start").innerHTML = `START <strong>${money(values[0])}</strong>`;
+  }
+
+  const empty = $("chart-empty");
   if (points.length < 2) {
     empty.style.display = "grid";
     return;
   }
   empty.style.display = "none";
 
-  const rect = canvas.getBoundingClientRect();
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-  canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-  const ctx = canvas.getContext("2d");
-  ctx.scale(dpr, dpr);
+  syncChartSize();
+  const ctx = chart.ctx;
+  const width = chart.w;
+  const height = chart.h;
+  ctx.setTransform(chart.dpr, 0, 0, chart.dpr, 0, 0);
+  ctx.clearRect(0, 0, width, height);
 
-  const width = rect.width;
-  const height = rect.height;
   const pad = { top: 18, right: 14, bottom: 22, left: 14 };
-  const values = points.map((point) => point.value);
   let min = Math.min(...values);
   let max = Math.max(...values);
   if (max - min < 2) { max += 1; min -= 1; }
   const range = max - min;
   $("chart-range").innerHTML = `RANGE <strong>${money(range)}</strong>`;
 
-  ctx.clearRect(0, 0, width, height);
   ctx.lineWidth = 1;
   ctx.strokeStyle = "rgba(152, 183, 171, 0.08)";
   for (let i = 0; i < 5; i += 1) {
@@ -167,6 +200,9 @@ async function refresh() {
   }
 }
 
-window.addEventListener("resize", refresh);
+// Resize only redraws the last known data - no extra network request.
+window.addEventListener("resize", () => {
+  if (chart.points.length) drawChart(chart.points);
+});
 refresh();
 setInterval(refresh, 1000);

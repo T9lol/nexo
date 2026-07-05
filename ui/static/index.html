@@ -72,7 +72,8 @@
             <div id="chart-empty" class="chart-empty">Collecting market ticks…</div>
           </div>
           <div class="chart-footer">
-            <span>START <strong>$10,000</strong></span>
+            <span id="chart-latest">LATEST <strong>—</strong></span>
+            <span id="chart-start">START <strong>—</strong></span>
             <span id="chart-range">RANGE <strong>$0.00</strong></span>
             <span id="last-update">UPDATED —</span>
           </div>
@@ -133,7 +134,8 @@
           </div>
           <div id="strategy-list" class="strategy-list"></div>
           <div class="strategy-footnote">
-            Selection = cumulative reward × adaptive weight
+            Heuristic reward-weighted selector — not trained ML/RL.
+            Selection = adaptive score (cumulative reward × adaptive weight).
           </div>
         </article>
       </section>

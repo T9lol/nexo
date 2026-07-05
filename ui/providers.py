@@ -155,7 +155,16 @@ class DashboardStore:
                         "pnl": round(equity - self.initial_equity, 2),
                     },
                     "selected_strategy": self.selected_strategy,
-                    "strategies": self.strategies,
+                    "strategies": {
+                        name: {
+                            **item,
+                            # Adaptive score = the mock's selection metric.
+                            "adaptive": round(
+                                float(item["score"]) * float(item["weight"]), 2
+                            ),
+                        }
+                        for name, item in self.strategies.items()
+                    },
                     "trades": self.trades,
                     "equity_curve": self.equity_curve,
                 }
@@ -376,6 +385,13 @@ class RuntimeDashboardProvider:
                     "score": round(self.evaluator.scores.get(name, 0.0), 2),
                     "weight": round(self.evaluator.weights.get(name, 1.0), 4),
                     "updates": int(self.evaluator.updates.get(name, 0)),
+                    # Adaptive score = the evaluator's real selection metric
+                    # (reward x weight, with the negative-reward rule).
+                    "adaptive": (
+                        round(self.evaluator.weighted_score(name), 2)
+                        if name in self.evaluator.scores
+                        else 0.0
+                    ),
                 }
                 for name in self.manager.strategies
             }
@@ -385,7 +401,7 @@ class RuntimeDashboardProvider:
             return deepcopy(
                 {
                     "status": "live",
-                    "mode": "UI-2 runtime",
+                    "mode": "UI-3 runtime",
                     "updated_at": utc_time(),
                     "market": {
                         "symbol": self._last_symbol,

@@ -34,14 +34,28 @@ class RuntimeProviderTests(unittest.TestCase):
 
         self.assertEqual(SCHEMA_KEYS, set(state))
         self.assertEqual(state["status"], "live")
-        self.assertEqual(state["mode"], "UI-2 runtime")
+        self.assertEqual(state["mode"], "UI-3 runtime")
         self.assertIn("price", state["market"])
         self.assertEqual(
             {"cash", "asset", "equity", "pnl"}, set(state["portfolio"])
         )
         self.assertEqual({"A", "B"}, set(state["strategies"]))
         for stats in state["strategies"].values():
-            self.assertEqual({"score", "weight", "updates"}, set(stats))
+            self.assertEqual(
+                {"score", "weight", "updates", "adaptive"}, set(stats)
+            )
+
+    def test_adaptive_score_matches_evaluator_selection_metric(self) -> None:
+        provider = self.make()
+        for _ in range(40):
+            provider.tick_once()
+
+        strategies = provider.snapshot()["strategies"]
+        for name, stats in strategies.items():
+            self.assertEqual(
+                stats["adaptive"],
+                round(provider.evaluator.weighted_score(name), 2),
+            )
 
     def test_ticks_drive_equity_curve_and_trades(self) -> None:
         provider = self.make()
