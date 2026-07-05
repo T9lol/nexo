@@ -54,8 +54,58 @@
             <span id="active-strategy" class="strategy-avatar">A</span>
             <span id="active-label" class="metric-value compact">Strategy A</span>
           </div>
-          <div class="metric-note"><span class="tiny-dot"></span> ADAPTIVE ROUTING</div>
+          <div class="metric-note" id="routing-note"><span class="tiny-dot"></span> ADAPTIVE ROUTING</div>
         </article>
+      </section>
+
+      <section class="control-panel" aria-label="Runtime control terminal">
+        <div class="control-head">
+          <div>
+            <div class="panel-kicker">CONTROL TERMINAL</div>
+            <h2>Runtime controls</h2>
+          </div>
+          <div class="env-chip" title="Local simulator: no broker, exchange, or real money">
+            <span class="tiny-dot"></span> LOCAL SIMULATION
+          </div>
+        </div>
+
+        <div class="control-grid">
+          <div class="control-group">
+            <span class="control-label" id="trading-label">TRADING</span>
+            <button id="trading-btn" class="ctl-btn" type="button">Loading…</button>
+          </div>
+
+          <div class="control-group">
+            <span class="control-label">STRATEGY POLICY</span>
+            <div class="segmented" role="group" id="strategy-seg" aria-label="Strategy policy">
+              <button data-policy="auto" type="button" aria-pressed="false">Auto</button>
+              <button data-policy="A" type="button" aria-pressed="false">A</button>
+              <button data-policy="B" type="button" aria-pressed="false">B</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <span class="control-label">POSITION-LIMIT POLICY</span>
+            <button id="risk-btn" class="ctl-switch" type="button" role="switch" aria-checked="true">
+              <span class="switch-track"><span class="switch-thumb"></span></span>
+              <span id="risk-text">Enabled</span>
+            </button>
+          </div>
+
+          <div class="control-group">
+            <span class="control-label">RUNTIME MODE</span>
+            <div class="segmented" role="group" id="mode-seg" aria-label="Runtime mode">
+              <button data-mode="live" type="button" aria-pressed="false">Live</button>
+              <button data-mode="backtest" type="button" aria-pressed="false">Backtest</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="risk-warning" class="risk-warning" role="alert" hidden>
+          ⚠ Position-limit policy disabled — positions may exceed the configured cap.
+          Hard execution invariants (valid price/amount, no negative cash, no short) remain enforced.
+        </div>
+        <div id="control-status" class="control-status" role="status" aria-live="polite"></div>
       </section>
 
       <section class="workspace">
@@ -146,6 +196,22 @@
         <a href="/docs" target="_blank" rel="noreferrer">API Docs ↗</a>
       </footer>
     </main>
+
+    <div id="confirm-modal" class="modal" hidden>
+      <div class="modal-backdrop" data-close="1"></div>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+        <h3 id="confirm-title">Disable position-limit policy?</h3>
+        <p id="confirm-body">
+          This removes the configurable position cap in this local simulator. Hard
+          execution invariants (valid price/amount, no negative cash, no short
+          selling) stay enforced. You can re-enable it at any time.
+        </p>
+        <div class="modal-actions">
+          <button id="confirm-cancel" type="button" class="btn-ghost">Cancel</button>
+          <button id="confirm-ok" type="button" class="btn-danger">Disable policy</button>
+        </div>
+      </div>
+    </div>
 
     <script src="/static/app.js" defer></script>
   </body>

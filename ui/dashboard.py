@@ -11,9 +11,10 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 # Re-exported for backwards compatibility with existing imports/tests.
 from ui.providers import (  # noqa: F401
@@ -67,6 +68,56 @@ def get_trades() -> list[dict[str, Any]]:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+# --- UI-4 control commands (explicit, validated, idempotent) ---------------
+
+
+class TradingCommand(BaseModel):
+    enabled: bool
+
+
+class StrategyCommand(BaseModel):
+    policy: str
+
+
+class RiskCommand(BaseModel):
+    position_limit_enabled: bool
+
+
+class ModeCommand(BaseModel):
+    mode: str
+
+
+@app.get("/api/control")
+def get_control() -> dict[str, Any]:
+    return provider.get_control()
+
+
+@app.post("/api/control/trading")
+def set_trading(command: TradingCommand) -> dict[str, Any]:
+    return provider.set_trading(command.enabled)
+
+
+@app.post("/api/control/strategy")
+def set_strategy(command: StrategyCommand) -> dict[str, Any]:
+    try:
+        return provider.set_strategy(command.policy)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
+
+
+@app.post("/api/control/risk")
+def set_risk(command: RiskCommand) -> dict[str, Any]:
+    return provider.set_risk(command.position_limit_enabled)
+
+
+@app.post("/api/control/mode")
+def set_mode(command: ModeCommand) -> dict[str, Any]:
+    try:
+        return provider.set_mode(command.mode)
+    except ValueError as error:
+        raise HTTPException(status_code=400, detail=str(error))
 
 
 def run() -> None:

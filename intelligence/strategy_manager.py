@@ -23,10 +23,19 @@ class StrategyManager:
         self.evaluator = evaluator
         self.last_selected: str | None = None
         self.last_equity: float | None = None
+        # "auto" defers to the evaluator; a strategy name is a manual override.
+        # Overriding changes routing only - it never mutates evaluator scores.
+        self.policy: str = "auto"
+
+    def active_selection(self) -> str | None:
+        """Resolve the routing target from the current policy."""
+        if self.policy in self.strategies:
+            return self.policy
+        return self.select_best()
 
     def on_price(self, event: Event) -> None:
-        """Route a live price only to the adaptive winner."""
-        self.last_selected = self.select_best()
+        """Route a live price to the policy-selected strategy."""
+        self.last_selected = self.active_selection()
         if self.last_selected is not None:
             self.strategies[self.last_selected].on_price(event)
 

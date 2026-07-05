@@ -19,6 +19,7 @@ SCHEMA_KEYS = {
     "strategies",
     "trades",
     "equity_curve",
+    "control",
 }
 
 
@@ -34,7 +35,7 @@ class RuntimeProviderTests(unittest.TestCase):
 
         self.assertEqual(SCHEMA_KEYS, set(state))
         self.assertEqual(state["status"], "live")
-        self.assertEqual(state["mode"], "UI-3 runtime")
+        self.assertEqual(state["mode"], "UI-4 runtime")
         self.assertIn("price", state["market"])
         self.assertEqual(
             {"cash", "asset", "equity", "pnl"}, set(state["portfolio"])

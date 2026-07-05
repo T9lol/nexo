@@ -15,9 +15,11 @@ function updateConnection(status, label) {
 }
 
 const MODE_LABELS = {
-  "UI-3 runtime": { chip: "UI-3 · RUNTIME", footer: "Runtime provider · live NeXo engine (read-only)" },
-  "UI-2 runtime": { chip: "UI-2 · RUNTIME", footer: "Runtime provider · live NeXo engine (read-only)" },
+  "UI-4 runtime": { chip: "UI-4 · RUNTIME", footer: "Runtime provider · live NeXo engine" },
+  "UI-3 runtime": { chip: "UI-3 · RUNTIME", footer: "Runtime provider · live NeXo engine" },
+  "UI-2 runtime": { chip: "UI-2 · RUNTIME", footer: "Runtime provider · live NeXo engine" },
   "UI-1 simulation": { chip: "UI-1 · SIMULATION", footer: "Mock provider · deterministic demo" },
+  "backtest review": { chip: "BACKTEST · REVIEW", footer: "Deterministic historical replay (isolated)" },
 };
 
 function updateMode(state) {
@@ -37,6 +39,14 @@ function updateMetrics(state) {
   $("position-value").textContent = `${money(portfolio.asset * market.price)} EXPOSURE`;
   $("active-strategy").textContent = selected;
   $("active-label").textContent = `Strategy ${selected}`;
+
+  const routing = $("routing-note");
+  if (routing) {
+    const manual = state.control && state.control.manual_override;
+    routing.innerHTML = manual
+      ? `<span class="tiny-dot amber"></span> MANUAL OVERRIDE`
+      : `<span class="tiny-dot"></span> ADAPTIVE ROUTING`;
+  }
 
   const pnl = $("pnl");
   pnl.textContent = `${signedMoney(portfolio.pnl)} all time`;
@@ -183,12 +193,152 @@ function drawChart(points) {
   ctx.lineWidth = 2; ctx.strokeStyle = "#56e6a6"; ctx.stroke();
 }
 
+// ---- UI-4 control terminal ----
+let lastControl = null;
+let commandPending = false;
+
+function setPending(on) {
+  commandPending = on;
+  const panel = document.querySelector(".control-panel");
+  if (panel) panel.classList.toggle("pending", on);
+}
+
+function showControlStatus(message, kind) {
+  const node = $("control-status");
+  if (!node) return;
+  node.textContent = message;
+  node.className = `control-status ${kind || ""}`;
+  clearTimeout(showControlStatus._t);
+  if (kind === "success") {
+    showControlStatus._t = setTimeout(() => {
+      node.textContent = "";
+      node.className = "control-status";
+    }, 3200);
+  }
+}
+
+async function sendCommand(path, body, pendingLabel) {
+  if (commandPending) return;               // prevent double submission
+  setPending(true);
+  showControlStatus(pendingLabel || "Sending command…", "pending");
+  try {
+    const response = await fetch(path, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      let detail = `HTTP ${response.status}`;
+      try {
+        const err = await response.json();
+        if (err && err.detail) detail = typeof err.detail === "string" ? err.detail : JSON.stringify(err.detail);
+      } catch (_) { /* non-JSON error */ }
+      throw new Error(detail);
+    }
+    renderControl(await response.json());     // immediate optimistic sync
+    showControlStatus("Command applied.", "success");
+  } catch (error) {
+    showControlStatus(`Command failed: ${error.message}`, "error");
+  } finally {
+    setPending(false);
+    refresh();                                // authoritative resync
+  }
+}
+
+function renderControl(control) {
+  if (!control) return;
+  lastControl = control;
+  const backtest = control.mode === "backtest";
+
+  const tradingBtn = $("trading-btn");
+  if (tradingBtn) {
+    const on = control.trading_enabled;
+    tradingBtn.textContent = on ? "Trading live · Pause" : "Paused · Resume";
+    tradingBtn.classList.toggle("paused", !on);
+    tradingBtn.setAttribute("aria-pressed", String(on));
+    tradingBtn.disabled = backtest;
+  }
+
+  document.querySelectorAll("#strategy-seg button").forEach((btn) => {
+    btn.setAttribute("aria-pressed", String(btn.dataset.policy === control.strategy_policy));
+    btn.disabled = backtest;
+  });
+
+  const riskBtn = $("risk-btn");
+  if (riskBtn) {
+    const enabled = control.position_limit_enabled;
+    riskBtn.setAttribute("aria-checked", String(enabled));
+    $("risk-text").textContent = enabled ? "Enabled" : "Disabled";
+    riskBtn.disabled = backtest;
+  }
+  $("risk-warning").hidden = control.position_limit_enabled;
+
+  document.querySelectorAll("#mode-seg button").forEach((btn) => {
+    btn.setAttribute("aria-pressed", String(btn.dataset.mode === control.mode));
+  });
+}
+
+function openConfirm() {
+  $("confirm-modal").hidden = false;
+  $("confirm-ok").focus();
+}
+function closeConfirm() {
+  $("confirm-modal").hidden = true;
+}
+
+function wireControls() {
+  const tradingBtn = $("trading-btn");
+  if (tradingBtn) tradingBtn.addEventListener("click", () => {
+    if (!lastControl) return;
+    const next = !lastControl.trading_enabled;
+    sendCommand("/api/control/trading", { enabled: next }, next ? "Resuming trading…" : "Pausing trading…");
+  });
+
+  document.querySelectorAll("#strategy-seg button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const policy = btn.dataset.policy;
+      if (lastControl && lastControl.strategy_policy === policy) return;
+      sendCommand("/api/control/strategy", { policy }, `Selecting policy ${policy}…`);
+    });
+  });
+
+  const riskBtn = $("risk-btn");
+  if (riskBtn) riskBtn.addEventListener("click", () => {
+    if (!lastControl) return;
+    if (lastControl.position_limit_enabled) {
+      openConfirm();                          // disabling requires confirmation
+    } else {
+      sendCommand("/api/control/risk", { position_limit_enabled: true }, "Enabling position-limit policy…");
+    }
+  });
+
+  document.querySelectorAll("#mode-seg button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const mode = btn.dataset.mode;
+      if (lastControl && lastControl.mode === mode) return;
+      sendCommand("/api/control/mode", { mode }, mode === "backtest" ? "Running backtest replay…" : "Resuming live session…");
+    });
+  });
+
+  $("confirm-cancel").addEventListener("click", closeConfirm);
+  $("confirm-modal").querySelector(".modal-backdrop").addEventListener("click", closeConfirm);
+  $("confirm-ok").addEventListener("click", () => {
+    closeConfirm();
+    sendCommand("/api/control/risk", { position_limit_enabled: false }, "Disabling position-limit policy…");
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !$("confirm-modal").hidden) closeConfirm();
+  });
+}
+wireControls();
+
 async function refresh() {
   try {
     const response = await fetch("/api/state", { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const state = await response.json();
     updateMode(state);
+    renderControl(state.control);
     updateMetrics(state);
     updateTrades(state.trades);
     updateStrategies(state.strategies, state.selected_strategy);
