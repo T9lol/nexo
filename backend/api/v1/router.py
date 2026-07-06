@@ -61,6 +61,20 @@ def health() -> dict[str, Any]:
     return success({"status": "ok"})
 
 
+@router.get(
+    "/health/db",
+    tags=["health"],
+    summary="Database health",
+    response_model=SuccessResponse,
+)
+def health_db() -> dict[str, Any]:
+    """Report database connectivity (v2 persistence layer)."""
+
+    from db import check_db  # lazy: no DB engine touched unless this is called
+
+    return success(check_db())
+
+
 # --- Read routes (public) --------------------------------------------------
 
 

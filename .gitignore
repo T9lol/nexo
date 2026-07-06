@@ -11,3 +11,8 @@ dist/
 build/
 .idea/
 .vscode/
+
+# v2 local database (SQLite dev/test artifacts)
+*.db
+*.sqlite3
+nexo_dev.db

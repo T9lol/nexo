@@ -58,6 +58,15 @@ class Settings(BaseModel):
 
     api_v1_prefix: str = "/api/v1"
 
+    # v2 persistence. Read from the standard ``DATABASE_URL`` (Railway/Heroku
+    # convention) with a local SQLite fallback so the app runs with no DB server.
+    # Production sets a ``postgresql+psycopg://...`` URL.
+    database_url: str = "sqlite:///./nexo_dev.db"
+
+    @property
+    def database_backend(self) -> str:
+        return self.database_url.split(":", 1)[0].split("+", 1)[0]
+
     # CORS is an explicit allowlist. It is intentionally empty by default: the
     # frontend talks to the backend through a same-origin dev/proxy, so no
     # cross-origin access is granted unless origins are configured. A wildcard
@@ -103,6 +112,13 @@ def get_settings() -> Settings:
         app_version=_env("APP_VERSION", "1.0.0") or "1.0.0",
         environment=_env("ENV", "local") or "local",
         api_v1_prefix=_env("API_V1_PREFIX", "/api/v1") or "/api/v1",
+        # DATABASE_URL is a bare (non-namespaced) env var by convention; also
+        # accept NEXO_DATABASE_URL for consistency with the other settings.
+        database_url=(
+            os.getenv("DATABASE_URL")
+            or _env("DATABASE_URL")
+            or "sqlite:///./nexo_dev.db"
+        ),
         cors_origins=_env_list("CORS_ORIGINS"),
         cors_allow_credentials=_env_bool("CORS_ALLOW_CREDENTIALS", False),
         log_level=_env("LOG_LEVEL", "INFO") or "INFO",

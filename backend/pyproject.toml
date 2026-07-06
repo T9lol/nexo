@@ -18,6 +18,11 @@ dashboard = [
     # backs the decode/verify path so protected /api/v1 routes are enforceable
     # the moment an external identity provider is configured.
     "pyjwt>=2.8,<3.0",
+    # v2 persistence layer. SQLite is used for local dev/tests (no server
+    # required); PostgreSQL (psycopg) is the production target via DATABASE_URL.
+    "sqlalchemy>=2.0,<3.0",
+    "alembic>=1.13,<2.0",
+    "psycopg[binary]>=3.1,<4.0",
 ]
 # Test/dev extras. httpx backs Starlette's TestClient for HTTP round-trip
 # tests against the dashboard API; install alongside the dashboard extra.
@@ -38,6 +43,7 @@ include = [
     "api*",
     "backtest*",
     "core*",
+    "db*",
     "execution*",
     "intelligence*",
     "observability*",
