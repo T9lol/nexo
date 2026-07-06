@@ -7,3 +7,5 @@ export * from './trade-service';
 export * from './control-service';
 export * from './backtest-service';
 export * from './risk-service';
+export * from './settings-service';
+export * from './admin-service';

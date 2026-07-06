@@ -36,10 +36,10 @@ describe('router', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders the admin future-scope placeholder', async () => {
+  it('renders the admin console', async () => {
     renderAt('/admin');
     expect(
-      await screen.findByText('Admin is not available yet'),
+      await screen.findByRole('heading', { level: 1, name: 'Admin Console' }),
     ).toBeInTheDocument();
   });
 
