@@ -32,6 +32,16 @@ def _env_bool(name: str, default: bool) -> bool:
     return raw.strip().lower() in {"1", "true", "yes", "on"}
 
 
+def _env_float(name: str, default: float) -> float:
+    raw = _env(name)
+    if raw is None:
+        return default
+    try:
+        return float(raw)
+    except ValueError:
+        return default
+
+
 def _env_list(name: str) -> list[str]:
     raw = _env(name)
     if not raw:
@@ -59,6 +69,12 @@ class Settings(BaseModel):
     log_json: bool = True
     # Per-request access logging is opt-in to keep test/CLI output clean.
     log_requests: bool = False
+
+    # Approximate USD<->MYR conversion. RM (MYR) is the primary display
+    # currency; USD figures are approximate and derived with this placeholder
+    # rate ("1 USD ~= usd_myr_rate MYR"). No live FX feed is integrated, so USD
+    # values are always flagged approximate. Matches the frontend placeholder.
+    usd_myr_rate: float = 4.7
 
     # --- JWT-ready authentication (no tokens are issued by this service) ------
     # When ``jwt_secret`` is unset, protected routes reject every request with
@@ -92,6 +108,7 @@ def get_settings() -> Settings:
         log_level=_env("LOG_LEVEL", "INFO") or "INFO",
         log_json=_env_bool("LOG_JSON", True),
         log_requests=_env_bool("LOG_REQUESTS", False),
+        usd_myr_rate=_env_float("USD_MYR_RATE", 4.7),
         jwt_secret=_env("JWT_SECRET") or None,
         jwt_algorithm=_env("JWT_ALGORITHM", "HS256") or "HS256",
         jwt_audience=_env("JWT_AUDIENCE") or None,

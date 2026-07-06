@@ -14,10 +14,15 @@ from __future__ import annotations
 
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ResponseMeta(BaseModel):
+    # ``extra="allow"`` so endpoints can attach context (e.g. a currency basis)
+    # without every route needing a bespoke response model. Without this,
+    # response_model coercion would silently drop unknown meta keys.
+    model_config = ConfigDict(extra="allow")
+
     api_version: str = "v1"
 
 

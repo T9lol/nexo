@@ -24,6 +24,8 @@ from api.deprecation import install_deprecation_middleware
 from api.errors import install_exception_handlers
 from api.logging import configure_logging, get_logger
 from api.v1 import router as api_v1_router
+from api.v1.dashboard_router import router as api_v1_dashboard_router
+from api.v1.portfolio_router import router as api_v1_portfolio_router
 
 # Re-exported for backwards compatibility with existing imports/tests.
 from ui.providers import (  # noqa: F401
@@ -70,6 +72,15 @@ OPENAPI_TAGS = [
     {"name": "trades", "description": "Recent trade activity."},
     {"name": "control", "description": "Runtime control commands."},
     {
+        "name": "dashboard",
+        "description": "Dashboard module: summary, equity curve, recent trades.",
+    },
+    {
+        "name": "portfolio",
+        "description": "Portfolio module: summary, holdings, allocation, value "
+        "history, asset details.",
+    },
+    {
         "name": "auth",
         "description": "JWT-ready authentication introspection. NeXo does not "
         "issue tokens; routes are enforced once an identity provider is "
@@ -104,6 +115,8 @@ app.add_middleware(
 install_deprecation_middleware(app)
 install_exception_handlers(app)
 app.include_router(api_v1_router)
+app.include_router(api_v1_dashboard_router)
+app.include_router(api_v1_portfolio_router)
 
 
 @app.get("/", include_in_schema=False)
