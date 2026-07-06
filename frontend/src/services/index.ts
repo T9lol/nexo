@@ -4,3 +4,5 @@ export * from './fx-service';
 export * from './analytics-service';
 export * from './strategy-service';
 export * from './trade-service';
+export * from './control-service';
+export * from './backtest-service';
