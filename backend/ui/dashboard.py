@@ -35,6 +35,7 @@ from api.v1.admin_router import router as api_v1_admin_router
 from api.v1.admin_service import install_maintenance_middleware
 from api.v2.auth_router import router as api_v2_auth_router
 from api.v2.users_router import router as api_v2_users_router
+from api.v2.wallet_router import router as api_v2_wallet_router
 
 # Re-exported for backwards compatibility with existing imports/tests.
 from ui.providers import (  # noqa: F401
@@ -134,6 +135,11 @@ OPENAPI_TAGS = [
         "description": "v2 auth: register, login, refresh-token rotation, logout.",
     },
     {"name": "users-v2", "description": "v2 users: self profile and admin listing."},
+    {
+        "name": "wallet-v2",
+        "description": "v2 wallet: balance, ledger, deposit, withdraw + admin "
+        "approval (paper funds).",
+    },
 ]
 
 app = FastAPI(
@@ -175,6 +181,7 @@ app.include_router(api_v1_admin_router)
 # --- v2 SaaS API (per-user, DB-backed) ---
 app.include_router(api_v2_auth_router)
 app.include_router(api_v2_users_router)
+app.include_router(api_v2_wallet_router)
 
 
 @app.get("/", include_in_schema=False)
