@@ -35,3 +35,19 @@ export function setRuntimeMode(
 ): Promise<ControlState> {
   return postControl('/api/control/mode', { mode }, signal);
 }
+
+/** Pause/resume trading (backs the Emergency Stop). */
+export function setTrading(
+  enabled: boolean,
+  signal?: AbortSignal,
+): Promise<ControlState> {
+  return postControl('/api/control/trading', { enabled }, signal);
+}
+
+/** Enable/disable the configurable position-limit policy. */
+export function setPositionLimit(
+  enabled: boolean,
+  signal?: AbortSignal,
+): Promise<ControlState> {
+  return postControl('/api/control/risk', { position_limit_enabled: enabled }, signal);
+}

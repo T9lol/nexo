@@ -1,81 +1,152 @@
-import { ShieldAlert } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Button, Card, PageHeader } from '@/components/ui';
+import { ConnectionStatus } from '@/features/dashboard/connection-status';
 import {
-  Badge,
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-  PageHeader,
-  Switch,
-} from '@/components/ui';
-
-const POLICIES = [
-  {
-    label: 'Position-limit policy',
-    description: 'Cap maximum position size (configurable in a later sprint).',
-  },
-  {
-    label: 'Max daily loss',
-    description: 'Halt trading past a daily loss threshold.',
-  },
-  {
-    label: 'Exposure ceiling',
-    description: 'Limit total market exposure across strategies.',
-  },
-];
+  EmergencyStopCard,
+  ExposurePanel,
+  RiskAlertsPanel,
+  RiskConfigCard,
+  RiskOverviewCards,
+  deriveRiskAlerts,
+  deriveRiskOverview,
+} from '@/features/risk';
+import { usePolling } from '@/hooks/use-polling';
+import {
+  BACKEND_MAX_POSITION,
+  getDashboardState,
+  setPositionLimit,
+  setTrading,
+} from '@/services';
 
 export default function RiskPage() {
+  const {
+    data: state,
+    status,
+    error,
+    lastUpdated,
+    refetch,
+  } = usePolling(getDashboardState, 5000);
+
+  const overview = useMemo(
+    () => deriveRiskOverview(state, BACKEND_MAX_POSITION),
+    [state],
+  );
+  const alerts = useMemo(
+    () => (overview ? deriveRiskAlerts(overview) : []),
+    [overview],
+  );
+
+  const [pending, setPending] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const runControl = async (action: () => Promise<unknown>) => {
+    if (pending) return;
+    setPending(true);
+    setActionError(null);
+    try {
+      await action();
+      refetch();
+    } catch (caught) {
+      setActionError((caught as Error).message);
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const loading = status === 'loading';
+  const disconnected = status === 'error' && !state;
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Risk Center"
-        description="Limits, exposure, and risk-policy controls."
-        actions={<Badge variant="warning">Read-only in Sprint 1</Badge>}
+        description="Exposure, live risk controls, and alerts."
+        actions={
+          <div className="flex items-center gap-3">
+            <ConnectionStatus
+              status={status}
+              error={error}
+              lastUpdated={lastUpdated}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refetch}
+              aria-label="Refresh risk data"
+            >
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              Refresh
+            </Button>
+          </div>
+        }
       />
 
-      <Card className="border-warning/40 bg-warning/5">
-        <CardHeader className="flex-row items-start gap-3 space-y-0">
-          <ShieldAlert
-            className="mt-0.5 h-5 w-5 shrink-0 text-warning"
+      {disconnected ? (
+        <Card className="flex flex-col gap-3 border-negative/40 bg-negative/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <AlertTriangle
+              className="mt-0.5 h-5 w-5 shrink-0 text-negative"
+              aria-hidden="true"
+            />
+            <div className="flex flex-col gap-0.5">
+              <p className="text-sm font-medium text-foreground">
+                Unable to reach the NeXo backend
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {error?.message ?? 'The risk center could not load data.'}
+              </p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" onClick={refetch}>
+            <RefreshCw className="h-4 w-4" aria-hidden="true" />
+            Retry
+          </Button>
+        </Card>
+      ) : null}
+
+      {actionError ? (
+        <Card className="flex items-start gap-3 border-negative/40 bg-negative/5 p-4">
+          <AlertTriangle
+            className="mt-0.5 h-5 w-5 shrink-0 text-negative"
             aria-hidden="true"
           />
-          <div className="flex flex-col gap-1">
-            <CardTitle className="text-warning">Mandatory invariants</CardTitle>
-            <CardDescription>
-              Core execution safeguards (valid price/amount, no negative cash, no
-              short inventory) are always enforced and cannot be disabled.
-            </CardDescription>
-          </div>
-        </CardHeader>
-      </Card>
+          <p className="text-sm text-muted-foreground">
+            Control command failed: {actionError}
+          </p>
+        </Card>
+      ) : null}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Configurable policies</CardTitle>
-          <CardDescription>
-            These toggles are placeholders in Sprint 1 and are not yet connected.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col divide-y divide-border">
-          {POLICIES.map((policy) => (
-            <div
-              key={policy.label}
-              className="flex items-center justify-between gap-4 py-4 first:pt-0 last:pb-0"
-            >
-              <div className="flex flex-col gap-0.5">
-                <p className="text-sm font-medium text-foreground">
-                  {policy.label}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {policy.description}
-                </p>
-              </div>
-              <Switch disabled aria-label={policy.label} />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      <RiskOverviewCards overview={overview} loading={loading} />
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-span-2">
+          <ExposurePanel overview={overview} loading={loading} />
+        </div>
+        <div className="min-w-0 lg:col-span-1">
+          <RiskAlertsPanel alerts={alerts} loading={loading} />
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="min-w-0 lg:col-span-1">
+          <EmergencyStopCard
+            tradingEnabled={overview?.tradingEnabled ?? true}
+            pending={pending}
+            onSetTrading={(enabled) => void runControl(() => setTrading(enabled))}
+          />
+        </div>
+        <div className="min-w-0 lg:col-span-2">
+          <RiskConfigCard
+            positionLimitEnabled={overview?.positionLimitEnabled ?? true}
+            maxPosition={BACKEND_MAX_POSITION}
+            pending={pending}
+            onSetPositionLimit={(enabled) =>
+              void runControl(() => setPositionLimit(enabled))
+            }
+          />
+        </div>
+      </div>
     </div>
   );
 }
