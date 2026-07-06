@@ -92,6 +92,7 @@ _STATUS_CODE_NAMES = {
     422: "validation_error",
     429: "rate_limited",
     500: "internal_error",
+    501: "not_implemented",
     503: "service_unavailable",
 }
 

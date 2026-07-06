@@ -30,6 +30,9 @@ from api.v1.strategy_router import router as api_v1_strategy_router
 from api.v1.trade_router import router as api_v1_trade_router
 from api.v1.backtest_router import router as api_v1_backtest_router
 from api.v1.risk_router import router as api_v1_risk_router
+from api.v1.settings_router import router as api_v1_settings_router
+from api.v1.admin_router import router as api_v1_admin_router
+from api.v1.admin_service import install_maintenance_middleware
 
 # Re-exported for backwards compatibility with existing imports/tests.
 from ui.providers import (  # noqa: F401
@@ -103,6 +106,16 @@ OPENAPI_TAGS = [
         "emergency stop, save settings.",
     },
     {
+        "name": "settings",
+        "description": "Settings: profile, theme, language, currency, exchange "
+        "rate, notifications, API keys, system info.",
+    },
+    {
+        "name": "admin",
+        "description": "Admin Console (RBAC admin): users, KYC, deposits, "
+        "withdrawals, audit logs, system health, feature flags, maintenance.",
+    },
+    {
         "name": "auth",
         "description": "JWT-ready authentication introspection. NeXo does not "
         "issue tokens; routes are enforced once an identity provider is "
@@ -134,6 +147,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+install_maintenance_middleware(app)
 install_deprecation_middleware(app)
 install_exception_handlers(app)
 app.include_router(api_v1_router)
@@ -143,6 +157,8 @@ app.include_router(api_v1_strategy_router)
 app.include_router(api_v1_trade_router)
 app.include_router(api_v1_backtest_router)
 app.include_router(api_v1_risk_router)
+app.include_router(api_v1_settings_router)
+app.include_router(api_v1_admin_router)
 
 
 @app.get("/", include_in_schema=False)
