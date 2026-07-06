@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from db.models import Transaction, Wallet
+from db.models import Bot, Subscription, Transaction, Wallet
 
 
 def _num(value: Decimal | None) -> float | None:
@@ -36,3 +36,27 @@ def transaction_out(tx: Transaction) -> dict[str, Any]:
         "reference": tx.reference,
         "created_at": _iso(tx.created_at),
     }
+
+
+def bot_out(bot: Bot) -> dict[str, Any]:
+    return {
+        "id": bot.id,
+        "key": bot.key,
+        "name": bot.name,
+        "description": bot.description,
+        "strategy_ref": bot.strategy_ref,
+        "is_active": bot.is_active,
+    }
+
+
+def subscription_out(sub: Subscription) -> dict[str, Any]:
+    out: dict[str, Any] = {
+        "id": sub.id,
+        "bot_id": sub.bot_id,
+        "capital": _num(sub.capital),
+        "status": sub.status,
+        "created_at": _iso(sub.created_at),
+    }
+    if sub.bot is not None:
+        out["bot"] = {"key": sub.bot.key, "name": sub.bot.name}
+    return out

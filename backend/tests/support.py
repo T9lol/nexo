@@ -16,6 +16,7 @@ from sqlalchemy.pool import StaticPool
 import ui.dashboard as dash
 from api.config import get_settings
 from api.v2 import auth_service
+from api.v2.bots_service import seed_bots
 from db.base import Base
 from db.models import User, UserRole
 from db.session import get_db
@@ -32,6 +33,10 @@ class ApiTestBase(unittest.TestCase):
         )
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
+        # Seed the bot catalog into the isolated test DB.
+        with self.Session() as seed_session:
+            seed_bots(seed_session)
+            seed_session.commit()
 
         def _override_get_db():
             session = self.Session()

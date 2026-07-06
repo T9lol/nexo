@@ -36,6 +36,8 @@ from api.v1.admin_service import install_maintenance_middleware
 from api.v2.auth_router import router as api_v2_auth_router
 from api.v2.users_router import router as api_v2_users_router
 from api.v2.wallet_router import router as api_v2_wallet_router
+from api.v2.bots_router import router as api_v2_bots_router
+from api.v2.subscription_router import router as api_v2_subscription_router
 
 # Re-exported for backwards compatibility with existing imports/tests.
 from ui.providers import (  # noqa: F401
@@ -70,6 +72,17 @@ async def lifespan(_: FastAPI):
         from db import init_db
 
         init_db()
+    # Seed the bot catalog (idempotent). Guarded so a not-yet-migrated DB does
+    # not block startup.
+    try:
+        from db import SessionLocal
+        from api.v2.bots_service import seed_bots
+
+        with SessionLocal() as seed_session:
+            seed_bots(seed_session)
+            seed_session.commit()
+    except Exception:  # noqa: BLE001
+        logger.warning("bot seeding skipped", extra={"event": "seed_skip"})
     provider.start()
     manager = ConnectionManager(provider)
     manager.start()
@@ -140,6 +153,12 @@ OPENAPI_TAGS = [
         "description": "v2 wallet: balance, ledger, deposit, withdraw + admin "
         "approval (paper funds).",
     },
+    {"name": "bots-v2", "description": "v2 bots: browse subscribable engine strategies."},
+    {
+        "name": "subscriptions-v2",
+        "description": "v2 subscriptions: bind user + bot + capital; "
+        "active/paused/cancelled.",
+    },
 ]
 
 app = FastAPI(
@@ -182,6 +201,8 @@ app.include_router(api_v1_admin_router)
 app.include_router(api_v2_auth_router)
 app.include_router(api_v2_users_router)
 app.include_router(api_v2_wallet_router)
+app.include_router(api_v2_bots_router)
+app.include_router(api_v2_subscription_router)
 
 
 @app.get("/", include_in_schema=False)
