@@ -64,11 +64,12 @@ describe('AdminPage', () => {
     ).toBeInTheDocument();
     expect(await screen.findByText('Healthy')).toBeInTheDocument();
 
-    // All six admin panels present and marked unavailable (no fabricated data).
+    // All seven admin panels present and marked unavailable (no fabricated data).
     for (const title of [
       'User Management',
       'KYC Review',
-      'Deposit / Withdrawal Approval',
+      'Deposit Approval',
+      'Withdrawal Approval',
       'Audit Logs',
       'Feature Flags',
       'Maintenance Mode',
@@ -77,6 +78,6 @@ describe('AdminPage', () => {
         screen.getByRole('heading', { name: title }),
       ).toBeInTheDocument();
     }
-    expect(screen.getAllByText('Unavailable')).toHaveLength(6);
+    expect(screen.getAllByText('Unavailable')).toHaveLength(7);
   });
 });
