@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from db.models import Bot, Subscription, Transaction, Wallet
+from db.models import Bot, RiskConfig, Subscription, Trade, Transaction, Wallet
 
 
 def _num(value: Decimal | None) -> float | None:
@@ -60,3 +60,27 @@ def subscription_out(sub: Subscription) -> dict[str, Any]:
     if sub.bot is not None:
         out["bot"] = {"key": sub.bot.key, "name": sub.bot.name}
     return out
+
+
+def trade_out(t: Trade) -> dict[str, Any]:
+    return {
+        "id": t.id,
+        "subscription_id": t.subscription_id,
+        "bot_id": t.bot_id,
+        "symbol": t.symbol,
+        "side": t.side,
+        "quantity": _num(t.quantity),
+        "price": _num(t.price),
+        "value": _num(t.value),
+        "pnl": _num(t.pnl),
+        "status": t.status,
+        "executed_at": _iso(t.executed_at),
+    }
+
+
+def risk_config_out(rc: RiskConfig) -> dict[str, Any]:
+    return {
+        "position_limit_enabled": rc.position_limit_enabled,
+        "max_position": _num(rc.max_position),
+        "daily_loss_limit": _num(rc.daily_loss_limit),
+    }

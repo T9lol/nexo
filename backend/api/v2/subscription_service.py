@@ -90,10 +90,31 @@ def cancel(db: Session, user_id: int, sub_id: int) -> Subscription:
     sub = _owned(db, user_id, sub_id)
     if sub.status == SubscriptionStatus.CANCELLED.value:
         raise ConflictError("Subscription is already cancelled.", code="conflict")
+
+    # Liquidate at the current simulated price and settle PnL to the wallet.
+    from api.v2 import bot_worker
+    from api.v2.paper_trading import replay_state
+
+    price = Decimal(str(bot_worker.current_price()))
+    state = replay_state(db, sub.id, sub.capital)
+    capital = Decimal(str(sub.capital))
+    pnl = state.value(price) - capital
+
     wallet = wallet_service.get_or_create_wallet(db, user_id)
-    # Release the reserved capital back to available balance.
-    wallet.frozen_balance = wallet.frozen_balance - sub.capital
-    db.add(_ledger(user_id, wallet.id, TransactionType.UNFREEZE.value, sub.capital, sub.id))
+    wallet.frozen_balance = wallet.frozen_balance - capital  # release the reservation
+    db.add(_ledger(user_id, wallet.id, TransactionType.UNFREEZE.value, capital, sub.id))
+    if pnl != 0:
+        wallet.balance = wallet.balance + pnl  # realized + unrealized PnL
+        db.add(
+            Transaction(
+                wallet_id=wallet.id,
+                user_id=user_id,
+                type=TransactionType.TRADE.value,
+                amount=pnl,
+                status=TransactionStatus.COMPLETED.value,
+                reference=f"subscription:{sub.id}:settle",
+            )
+        )
     sub.status = SubscriptionStatus.CANCELLED.value
     db.flush()
     return sub

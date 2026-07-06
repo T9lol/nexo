@@ -38,6 +38,9 @@ from api.v2.users_router import router as api_v2_users_router
 from api.v2.wallet_router import router as api_v2_wallet_router
 from api.v2.bots_router import router as api_v2_bots_router
 from api.v2.subscription_router import router as api_v2_subscription_router
+from api.v2.portfolio_router import router as api_v2_portfolio_router
+from api.v2.trades_router import router as api_v2_trades_router
+from api.v2.risk_router import router as api_v2_risk_v2_router
 
 # Re-exported for backwards compatibility with existing imports/tests.
 from ui.providers import (  # noqa: F401
@@ -86,10 +89,16 @@ async def lifespan(_: FastAPI):
     provider.start()
     manager = ConnectionManager(provider)
     manager.start()
+    # Backend-only bot execution worker (writes paper trades for active subs).
+    from api.v2.bot_worker import get_worker
+
+    bot_worker = get_worker()
+    bot_worker.start()
     logger.info("dashboard started", extra={"event": "startup"})
     try:
         yield
     finally:
+        bot_worker.stop()
         await manager.stop()
         provider.stop()
         logger.info("dashboard stopped", extra={"event": "shutdown"})
@@ -159,6 +168,9 @@ OPENAPI_TAGS = [
         "description": "v2 subscriptions: bind user + bot + capital; "
         "active/paused/cancelled.",
     },
+    {"name": "portfolio-v2", "description": "v2 portfolio: per-user paper positions + PnL."},
+    {"name": "trades-v2", "description": "v2 trades: per-user paper trade history."},
+    {"name": "risk-v2", "description": "v2 risk: per-user position limits."},
 ]
 
 app = FastAPI(
@@ -203,6 +215,9 @@ app.include_router(api_v2_users_router)
 app.include_router(api_v2_wallet_router)
 app.include_router(api_v2_bots_router)
 app.include_router(api_v2_subscription_router)
+app.include_router(api_v2_portfolio_router)
+app.include_router(api_v2_trades_router)
+app.include_router(api_v2_risk_v2_router)
 
 
 @app.get("/", include_in_schema=False)
