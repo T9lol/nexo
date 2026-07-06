@@ -26,6 +26,8 @@ from api.logging import configure_logging, get_logger
 from api.v1 import router as api_v1_router
 from api.v1.dashboard_router import router as api_v1_dashboard_router
 from api.v1.portfolio_router import router as api_v1_portfolio_router
+from api.v1.strategy_router import router as api_v1_strategy_router
+from api.v1.trade_router import router as api_v1_trade_router
 
 # Re-exported for backwards compatibility with existing imports/tests.
 from ui.providers import (  # noqa: F401
@@ -81,6 +83,14 @@ OPENAPI_TAGS = [
         "history, asset details.",
     },
     {
+        "name": "strategies",
+        "description": "Strategy Center: list, details, comparison, enable/disable.",
+    },
+    {
+        "name": "trade-history",
+        "description": "Trade History: filtering, pagination, details, CSV export.",
+    },
+    {
         "name": "auth",
         "description": "JWT-ready authentication introspection. NeXo does not "
         "issue tokens; routes are enforced once an identity provider is "
@@ -117,6 +127,8 @@ install_exception_handlers(app)
 app.include_router(api_v1_router)
 app.include_router(api_v1_dashboard_router)
 app.include_router(api_v1_portfolio_router)
+app.include_router(api_v1_strategy_router)
+app.include_router(api_v1_trade_router)
 
 
 @app.get("/", include_in_schema=False)
