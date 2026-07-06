@@ -42,6 +42,16 @@ def _env_float(name: str, default: float) -> float:
         return default
 
 
+def _env_int(name: str, default: int) -> int:
+    raw = _env(name)
+    if raw is None:
+        return default
+    try:
+        return int(raw)
+    except ValueError:
+        return default
+
+
 def _env_list(name: str) -> list[str]:
     raw = _env(name)
     if not raw:
@@ -93,6 +103,9 @@ class Settings(BaseModel):
     jwt_algorithm: str = "HS256"
     jwt_audience: str | None = None
     jwt_issuer: str | None = None
+    # v2 token lifetimes.
+    jwt_access_ttl_minutes: int = 15
+    jwt_refresh_ttl_days: int = 7
 
     @property
     def auth_configured(self) -> bool:
@@ -129,4 +142,6 @@ def get_settings() -> Settings:
         jwt_algorithm=_env("JWT_ALGORITHM", "HS256") or "HS256",
         jwt_audience=_env("JWT_AUDIENCE") or None,
         jwt_issuer=_env("JWT_ISSUER") or None,
+        jwt_access_ttl_minutes=_env_int("JWT_ACCESS_TTL_MINUTES", 15),
+        jwt_refresh_ttl_days=_env_int("JWT_REFRESH_TTL_DAYS", 7),
     )

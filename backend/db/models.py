@@ -80,6 +80,22 @@ class User(TimestampMixin, Base):
     )
 
 
+class RefreshToken(TimestampMixin, Base):
+    """Server-side refresh-token record for rotation and revocation.
+
+    Only the SHA-256 hash of the opaque refresh token is stored, never the token
+    itself. (Beyond the eight core tables; required for secure session handling.)
+    """
+
+    __tablename__ = "refresh_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
 class Bot(TimestampMixin, Base):
     __tablename__ = "bots"
 

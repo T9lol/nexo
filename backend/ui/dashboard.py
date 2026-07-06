@@ -33,6 +33,8 @@ from api.v1.risk_router import router as api_v1_risk_router
 from api.v1.settings_router import router as api_v1_settings_router
 from api.v1.admin_router import router as api_v1_admin_router
 from api.v1.admin_service import install_maintenance_middleware
+from api.v2.auth_router import router as api_v2_auth_router
+from api.v2.users_router import router as api_v2_users_router
 
 # Re-exported for backwards compatibility with existing imports/tests.
 from ui.providers import (  # noqa: F401
@@ -61,6 +63,12 @@ manager: ConnectionManager | None = None
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     global manager
+    # Dev convenience: create tables on SQLite so the app is runnable without a
+    # migration step. Production (PostgreSQL) relies on Alembic migrations.
+    if settings.database_backend == "sqlite":
+        from db import init_db
+
+        init_db()
     provider.start()
     manager = ConnectionManager(provider)
     manager.start()
@@ -121,6 +129,11 @@ OPENAPI_TAGS = [
         "issue tokens; routes are enforced once an identity provider is "
         "configured.",
     },
+    {
+        "name": "auth-v2",
+        "description": "v2 auth: register, login, refresh-token rotation, logout.",
+    },
+    {"name": "users-v2", "description": "v2 users: self profile and admin listing."},
 ]
 
 app = FastAPI(
@@ -159,6 +172,9 @@ app.include_router(api_v1_backtest_router)
 app.include_router(api_v1_risk_router)
 app.include_router(api_v1_settings_router)
 app.include_router(api_v1_admin_router)
+# --- v2 SaaS API (per-user, DB-backed) ---
+app.include_router(api_v2_auth_router)
+app.include_router(api_v2_users_router)
 
 
 @app.get("/", include_in_schema=False)
