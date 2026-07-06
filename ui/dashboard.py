@@ -28,6 +28,8 @@ from api.v1.dashboard_router import router as api_v1_dashboard_router
 from api.v1.portfolio_router import router as api_v1_portfolio_router
 from api.v1.strategy_router import router as api_v1_strategy_router
 from api.v1.trade_router import router as api_v1_trade_router
+from api.v1.backtest_router import router as api_v1_backtest_router
+from api.v1.risk_router import router as api_v1_risk_router
 
 # Re-exported for backwards compatibility with existing imports/tests.
 from ui.providers import (  # noqa: F401
@@ -91,6 +93,16 @@ OPENAPI_TAGS = [
         "description": "Trade History: filtering, pagination, details, CSV export.",
     },
     {
+        "name": "backtest",
+        "description": "Backtest Center: run, status, equity curve, drawdown, "
+        "metrics, trades, report export.",
+    },
+    {
+        "name": "risk",
+        "description": "Risk Center: overview, exposure, configuration, alerts, "
+        "emergency stop, save settings.",
+    },
+    {
         "name": "auth",
         "description": "JWT-ready authentication introspection. NeXo does not "
         "issue tokens; routes are enforced once an identity provider is "
@@ -129,6 +141,8 @@ app.include_router(api_v1_dashboard_router)
 app.include_router(api_v1_portfolio_router)
 app.include_router(api_v1_strategy_router)
 app.include_router(api_v1_trade_router)
+app.include_router(api_v1_backtest_router)
+app.include_router(api_v1_risk_router)
 
 
 @app.get("/", include_in_schema=False)
