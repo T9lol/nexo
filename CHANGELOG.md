@@ -4,6 +4,40 @@ All notable changes to NeXo are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project follows
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased] — v2 (paper-trading SaaS)
+
+Restructures the monolith into a deployable SaaS architecture while preserving
+all v1 features. NeXo remains an educational **paper-trading / simulation**
+platform — real, persisted, auditable records of *simulated* value; no real
+money, no live exchange.
+
+### Added
+
+- **Repository layout**: `backend/` (FastAPI + engine + APIs), `database/`
+  (Alembic migrations), `frontend/` (unchanged Vite app).
+- **PostgreSQL persistence** (SQLAlchemy + Alembic) with a SQLite dev fallback:
+  users, bots, subscriptions, wallets, transactions, trades, kyc, risk_configs,
+  refresh_tokens.
+- **Production auth** (`/api/v2/auth`): register, login, JWT access + rotating
+  refresh tokens (revocable), `me`; DB-backed User/Admin RBAC.
+- **Wallet ledger** (`/api/v2/wallet`): balance + frozen_balance, deposit,
+  withdraw with admin approval — every change an auditable transaction.
+- **Bots + subscriptions** (`/api/v2/bots`, `/api/v2/subscriptions`): engine
+  strategies as subscribable bots; bind user + bot + capital (reserved from the
+  wallet); active/paused/cancelled.
+- **Bot worker + per-user state**: a backend-only worker executes the real
+  engine strategies for active subscriptions and persists trades;
+  `/api/v2/portfolio`, `/api/v2/trades`, `/api/v2/risk`; cancel settles PnL.
+- **Frontend v2 integration layer** (`services/v2/`) with token refresh and
+  `VITE_API_URL`.
+- **Deployment**: Dockerfile (Railway) + `railway.json`, `frontend/vercel.json`,
+  updated CI (backend + frontend + migration check), and `docs/DEPLOYMENT.md`.
+
+### Preserved
+
+- The v1 engine, CLI modes, WebSocket, static UI, and all `/api/v1` endpoints
+  are unchanged and continue to serve the global simulation view.
+
 ## [1.0.0] — 2026-07-06
 
 First unified release of NeXo as a full trading terminal: the event-driven

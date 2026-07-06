@@ -248,41 +248,48 @@ market update interval.
 
 ```text
 nexo/
-├── api/               # v1 REST API: config, logging, errors, security, v1 routers
-├── backtest/          # Historical replay and deterministic sample data
-├── core/              # Event bus and simulated market-data feed
-├── execution/         # Execution and pre-trade risk engines
-├── intelligence/      # Adaptive evaluator and strategy manager
-├── observability/     # Console logging and alerts
-├── state/             # Portfolio and performance analytics
-├── strategies/        # Strategy interface and implementations
-├── ui/                # FastAPI app, providers, and legacy static dashboard
-├── frontend/          # React + TypeScript (Vite) terminal frontend
-├── tests/             # unittest suite (engine + API)
-├── docs/              # SDS, product spec, and screenshots
-├── main.py            # CLI composition root
-└── pyproject.toml     # Package metadata and CLI entry point
+├── backend/           # FastAPI app + engine + APIs
+│   ├── api/           #   v1 (simulation view) + v2 (SaaS) REST APIs
+│   ├── db/            #   v2 persistence: SQLAlchemy models + session
+│   ├── core/ execution/ intelligence/ state/ strategies/ backtest/  # engine
+│   ├── ui/            #   FastAPI app, providers, legacy static dashboard
+│   ├── observability/ #   console logging and alerts
+│   ├── tests/         #   unittest suite (engine + API)
+│   └── main.py, pyproject.toml
+├── database/          # Alembic migrations (PostgreSQL / SQLite)
+├── frontend/          # React + TypeScript (Vite) terminal + v2 API layer
+├── docs/              # SDS, product spec, deployment, screenshots
+├── Dockerfile         # backend image (Railway)
+└── README.md, CHANGELOG.md
 ```
 
 ## Installation and tests
 
-Requirements: Python 3.10+ for the engine/API; Node.js 18+ and pnpm for the
-frontend. The engine core has no third-party runtime dependencies; the API adds
-FastAPI, Uvicorn, and PyJWT (the `dashboard` extra).
+Requirements: Python 3.10+ for the backend; Node.js 18+ and pnpm for the
+frontend. Local dev uses a SQLite fallback (no database server required);
+production uses PostgreSQL via `DATABASE_URL`.
 
 ```bash
 git clone https://github.com/kriswu5240-collab/nexo.git
 cd nexo
 
-# Engine + API
+# Backend (engine + v1/v2 APIs)
+cd backend
 python -m pip install -e ".[dashboard,test]"
 python -m unittest discover -s tests -v
+NEXO_JWT_SECRET=dev-secret uvicorn ui.dashboard:app --reload --port 8002  # /docs
 
 # Frontend
-cd frontend
+cd ../frontend
 pnpm install
 pnpm typecheck && pnpm lint && pnpm test && pnpm build
 ```
+
+**Deployment** (Railway + Vercel + Postgres) is documented in
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). The v2 SaaS layer adds per-user
+accounts, a paper wallet with a real ledger, bot subscriptions, a backend bot
+worker, and per-user portfolios under `/api/v2` — all **simulated** value, no
+real money.
 
 On Windows, `py -3` may be used instead of `python`.
 
