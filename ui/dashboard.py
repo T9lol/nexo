@@ -12,9 +12,18 @@ from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, WebSocket
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+
+# API platform layer (Backend Sprint 1). Wired additively; legacy routes,
+# WebSocket behaviour, CLI, and trading-engine behaviour are unchanged.
+from api.config import get_settings
+from api.deprecation import install_deprecation_middleware
+from api.errors import install_exception_handlers
+from api.logging import configure_logging, get_logger
+from api.v1 import router as api_v1_router
 
 # Re-exported for backwards compatibility with existing imports/tests.
 from ui.providers import (  # noqa: F401
@@ -30,6 +39,10 @@ from ui.ws import ConnectionManager, stream
 
 STATIC_DIR = Path(__file__).parent / "static"
 
+settings = get_settings()
+configure_logging(level=settings.log_level, json_format=settings.log_json)
+logger = get_logger()
+
 provider: DashboardProvider = build_provider()
 # Set during lifespan startup so it binds to the active provider (respecting
 # test-time monkeypatching of `provider`).
@@ -42,20 +55,55 @@ async def lifespan(_: FastAPI):
     provider.start()
     manager = ConnectionManager(provider)
     manager.start()
+    logger.info("dashboard started", extra={"event": "startup"})
     try:
         yield
     finally:
         await manager.stop()
         provider.stop()
+        logger.info("dashboard stopped", extra={"event": "shutdown"})
 
+
+OPENAPI_TAGS = [
+    {"name": "health", "description": "Public liveness probes."},
+    {"name": "state", "description": "Read-only portfolio/market state."},
+    {"name": "trades", "description": "Recent trade activity."},
+    {"name": "control", "description": "Runtime control commands."},
+    {
+        "name": "auth",
+        "description": "JWT-ready authentication introspection. NeXo does not "
+        "issue tokens; routes are enforced once an identity provider is "
+        "configured.",
+    },
+]
 
 app = FastAPI(
-    title="NeXo Dashboard API",
-    version="1.1.0",
-    description="Product UI over a pluggable NeXo state provider.",
+    title=settings.app_name,
+    version=settings.app_version,
+    description=(
+        "NeXo backend API. Versioned routes live under `/api/v1` with "
+        "standardized success/error envelopes and JWT-ready authorization. "
+        "Unversioned `/api/*` routes are preserved for backwards compatibility "
+        "and marked deprecated."
+    ),
     lifespan=lifespan,
+    openapi_tags=OPENAPI_TAGS,
 )
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# --- API platform wiring ---------------------------------------------------
+# CORS is an explicit, config-driven allowlist (never a wildcard). It is empty
+# by default because the frontend talks to the backend over a same-origin proxy.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=settings.cors_allow_credentials,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+install_deprecation_middleware(app)
+install_exception_handlers(app)
+app.include_router(api_v1_router)
 
 
 @app.get("/", include_in_schema=False)
@@ -63,17 +111,23 @@ def dashboard() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
 
 
-@app.get("/api/state")
+# --- Legacy (unversioned) routes -------------------------------------------
+# Preserved unchanged for the frontend proxy. Superseded by /api/v1 and marked
+# deprecated in OpenAPI; responses also carry Deprecation/Link headers via
+# api.deprecation middleware.
+
+
+@app.get("/api/state", deprecated=True)
 def get_state() -> dict[str, Any]:
     return provider.snapshot()
 
 
-@app.get("/api/trades")
+@app.get("/api/trades", deprecated=True)
 def get_trades() -> list[dict[str, Any]]:
     return provider.snapshot()["trades"]
 
 
-@app.get("/api/health")
+@app.get("/api/health", deprecated=True)
 def health() -> dict[str, str]:
     return {"status": "ok"}
 
@@ -106,17 +160,17 @@ class ModeCommand(BaseModel):
     mode: str
 
 
-@app.get("/api/control")
+@app.get("/api/control", deprecated=True)
 def get_control() -> dict[str, Any]:
     return provider.get_control()
 
 
-@app.post("/api/control/trading")
+@app.post("/api/control/trading", deprecated=True)
 def set_trading(command: TradingCommand) -> dict[str, Any]:
     return provider.set_trading(command.enabled)
 
 
-@app.post("/api/control/strategy")
+@app.post("/api/control/strategy", deprecated=True)
 def set_strategy(command: StrategyCommand) -> dict[str, Any]:
     try:
         return provider.set_strategy(command.policy)
@@ -124,12 +178,12 @@ def set_strategy(command: StrategyCommand) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=str(error))
 
 
-@app.post("/api/control/risk")
+@app.post("/api/control/risk", deprecated=True)
 def set_risk(command: RiskCommand) -> dict[str, Any]:
     return provider.set_risk(command.position_limit_enabled)
 
 
-@app.post("/api/control/mode")
+@app.post("/api/control/mode", deprecated=True)
 def set_mode(command: ModeCommand) -> dict[str, Any]:
     try:
         return provider.set_mode(command.mode)

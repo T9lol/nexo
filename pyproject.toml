@@ -14,6 +14,10 @@ dependencies = []
 dashboard = [
     "fastapi>=0.115,<1.0",
     "uvicorn[standard]>=0.30,<1.0",
+    # JWT-ready authentication abstractions. NeXo does not issue tokens; this
+    # backs the decode/verify path so protected /api/v1 routes are enforceable
+    # the moment an external identity provider is configured.
+    "pyjwt>=2.8,<3.0",
 ]
 # Test/dev extras. httpx backs Starlette's TestClient for HTTP round-trip
 # tests against the dashboard API; install alongside the dashboard extra.
@@ -31,6 +35,7 @@ py-modules = ["main"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = [
+    "api*",
     "backtest*",
     "core*",
     "execution*",
