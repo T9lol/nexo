@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
-  Banknote,
+  ArrowDownToLine,
+  ArrowUpFromLine,
   FileClock,
   Flag,
   RefreshCw,
@@ -26,9 +27,14 @@ const UNAVAILABLE_PANELS = [
     description: 'Review and approve identity-verification submissions.',
   },
   {
-    icon: Banknote,
-    title: 'Deposit / Withdrawal Approval',
-    description: 'Approve or reject funding requests.',
+    icon: ArrowDownToLine,
+    title: 'Deposit Approval',
+    description: 'Review and approve incoming deposit requests.',
+  },
+  {
+    icon: ArrowUpFromLine,
+    title: 'Withdrawal Approval',
+    description: 'Review and approve outgoing withdrawal requests.',
   },
   {
     icon: FileClock,

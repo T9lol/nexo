@@ -5,16 +5,17 @@ import { getDashboardState, getHealth } from './dashboard-service';
  *
  * The only admin capability the backend genuinely supports is a health/status
  * read (via /api/health + /api/state). Everything else in an admin console —
- * user management, KYC review, deposit/withdrawal approval, audit logs, feature
- * flags, and maintenance mode — requires backends and server-side authorization
- * that do not exist in this local terminal. Those are exposed as typed
- * contracts that reject, so the UI can render clearly-disabled panels without
- * fabricating users, records, transactions, logs, flags, or backend behaviour.
+ * user management, KYC review, deposit approval, withdrawal approval, audit
+ * logs, feature flags, and maintenance mode — requires backends and server-side
+ * authorization that do not exist in this local terminal. Those are exposed as
+ * typed contracts that reject, so the UI can render clearly-disabled panels
+ * without fabricating users, records, transactions, logs, flags, or behaviour.
  */
 
 export const USER_MANAGEMENT_AVAILABLE = false;
 export const KYC_REVIEW_AVAILABLE = false;
-export const DEPOSIT_WITHDRAWAL_AVAILABLE = false;
+export const DEPOSIT_APPROVAL_AVAILABLE = false;
+export const WITHDRAWAL_APPROVAL_AVAILABLE = false;
 export const AUDIT_LOG_AVAILABLE = false;
 export const FEATURE_FLAGS_AVAILABLE = false;
 export const MAINTENANCE_MODE_AVAILABLE = false;
@@ -35,8 +36,12 @@ export function listKycRecords(): Promise<never> {
   return unavailable('KYC review');
 }
 
-export function listDepositWithdrawalRequests(): Promise<never> {
-  return unavailable('Deposit/withdrawal approval');
+export function listDepositRequests(): Promise<never> {
+  return unavailable('Deposit approval');
+}
+
+export function listWithdrawalRequests(): Promise<never> {
+  return unavailable('Withdrawal approval');
 }
 
 export function listAuditLogs(): Promise<never> {
