@@ -62,6 +62,7 @@ def reset_maintenance() -> None:
 # Paths that stay reachable during maintenance so admins can recover, health
 # checks work, and docs load.
 _EXEMPT_PREFIXES = (
+    "/ping",
     "/api/v1/admin",
     "/api/v1/health",
     "/api/health",

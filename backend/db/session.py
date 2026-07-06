@@ -19,7 +19,13 @@ from db import models  # noqa: F401 - registers all tables on Base.metadata
 
 
 def _make_engine(url: str) -> Engine:
-    connect_args = {"check_same_thread": False} if url.startswith("sqlite") else {}
+    timeout = get_settings().db_connect_timeout_seconds
+    if url.startswith("sqlite"):
+        connect_args = {"check_same_thread": False, "timeout": timeout}
+    elif url.startswith("postgresql"):
+        connect_args = {"connect_timeout": timeout}
+    else:
+        connect_args = {}
     return create_engine(url, future=True, pool_pre_ping=True, connect_args=connect_args)
 
 

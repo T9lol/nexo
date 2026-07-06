@@ -72,6 +72,7 @@ class Settings(BaseModel):
     # convention) with a local SQLite fallback so the app runs with no DB server.
     # Production sets a ``postgresql+psycopg://...`` URL.
     database_url: str = "sqlite:///./nexo_dev.db"
+    db_connect_timeout_seconds: int = 10
 
     @property
     def database_backend(self) -> str:
@@ -131,6 +132,9 @@ def get_settings() -> Settings:
             os.getenv("DATABASE_URL")
             or _env("DATABASE_URL")
             or "sqlite:///./nexo_dev.db"
+        ),
+        db_connect_timeout_seconds=max(
+            1, _env_int("DB_CONNECT_TIMEOUT_SECONDS", 10)
         ),
         cors_origins=_env_list("CORS_ORIGINS"),
         cors_allow_credentials=_env_bool("CORS_ALLOW_CREDENTIALS", False),

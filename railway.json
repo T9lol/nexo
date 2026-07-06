@@ -5,6 +5,11 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
+    "preDeployCommand": [
+      "alembic -c ../database/alembic.ini upgrade head"
+    ],
+    "healthcheckPath": "/ping",
+    "healthcheckTimeout": 100,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }

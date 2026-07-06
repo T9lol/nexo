@@ -14,5 +14,6 @@ RUN pip install --upgrade pip && pip install -e "./backend[dashboard]"
 
 WORKDIR /app/backend
 
-# Run Alembic migrations, then serve. PORT is provided by Railway.
-CMD ["sh", "-c", "alembic -c ../database/alembic.ini upgrade head && uvicorn ui.dashboard:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Migrations run in Railway's pre-deploy phase. The Python entrypoint reads the
+# dynamic PORT and binds to 0.0.0.0 without a shell-expansion dependency.
+CMD ["python", "-m", "ui.dashboard"]

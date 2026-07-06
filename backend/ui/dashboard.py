@@ -7,7 +7,11 @@ The ``/api/state`` schema is identical across providers, so the frontend is
 unchanged.
 """
 
-from contextlib import asynccontextmanager
+import asyncio
+import logging
+import os
+import threading
+from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Any
 
@@ -54,13 +58,19 @@ from ui.providers import (  # noqa: F401
 from ui.ws import ConnectionManager, stream
 
 
+# Keep a basic root logger available for Uvicorn/Railway even when structured
+# API logging is disabled or misconfigured.
+logging.basicConfig(level=logging.INFO)
+
 STATIC_DIR = Path(__file__).parent / "static"
 
 settings = get_settings()
 configure_logging(level=settings.log_level, json_format=settings.log_json)
 logger = get_logger()
 
-provider: DashboardProvider = build_provider()
+# Evaluator seeding performs a small CPU-bound backtest. Defer it for the web
+# process so importing the ASGI app and binding Railway's port stay immediate.
+provider: DashboardProvider = build_provider(seed_evaluator=False)
 # Set during lifespan startup so it binds to the active provider (respecting
 # test-time monkeypatching of `provider`).
 manager: ConnectionManager | None = None
@@ -69,38 +79,66 @@ manager: ConnectionManager | None = None
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     global manager
-    # Dev convenience: create tables on SQLite so the app is runnable without a
-    # migration step. Production (PostgreSQL) relies on Alembic migrations.
-    if settings.database_backend == "sqlite":
-        from db import init_db
+    logger.info("server starting", extra={"event": "startup_begin"})
 
-        init_db()
-    # Seed the bot catalog (idempotent). Guarded so a not-yet-migrated DB does
-    # not block startup.
-    try:
-        from db import SessionLocal
+    # These calls only start local threads/tasks and return immediately. All
+    # synchronous database I/O is deferred below so ASGI lifespan can complete
+    # and /ping can answer even when the database is temporarily unavailable.
+    provider.start()
+    manager = ConnectionManager(provider)
+    manager.start()
+
+    from api.v2.bot_worker import get_worker
+
+    bot_worker = get_worker()
+    initialization_stopped = threading.Event()
+
+    def initialize_database_services() -> None:
+        # Dev convenience: production schema migrations run in Railway's
+        # pre-deploy phase, while local SQLite creates its schema here.
+        if settings.database_backend == "sqlite":
+            from db import init_db
+
+            init_db()
+
         from api.v2.bots_service import seed_bots
+        from db import SessionLocal
 
         with SessionLocal() as seed_session:
             seed_bots(seed_session)
             seed_session.commit()
-    except Exception:  # noqa: BLE001
-        logger.warning("bot seeding skipped", extra={"event": "seed_skip"})
-    provider.start()
-    manager = ConnectionManager(provider)
-    manager.start()
-    # Backend-only bot execution worker (writes paper trades for active subs).
-    from api.v2.bot_worker import get_worker
 
-    bot_worker = get_worker()
-    bot_worker.start()
-    logger.info("dashboard started", extra={"event": "startup"})
+        if not initialization_stopped.is_set():
+            bot_worker.start()
+            logger.info(
+                "database services started", extra={"event": "services_ready"}
+            )
+
+    async def initialize_in_background() -> None:
+        try:
+            await asyncio.to_thread(initialize_database_services)
+        except asyncio.CancelledError:
+            raise
+        except Exception:  # noqa: BLE001 - liveness must not depend on the DB
+            logger.exception(
+                "database initialization skipped",
+                extra={"event": "database_initialization_failed"},
+            )
+
+    initialization_task = asyncio.create_task(
+        initialize_in_background(), name="database-initialization"
+    )
+    logger.info("server started", extra={"event": "startup"})
     try:
         yield
     finally:
-        bot_worker.stop()
+        initialization_stopped.set()
+        initialization_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await initialization_task
+        await asyncio.to_thread(bot_worker.stop)
         await manager.stop()
-        provider.stop()
+        await asyncio.to_thread(provider.stop)
         logger.info("dashboard stopped", extra={"event": "shutdown"})
 
 
@@ -220,6 +258,14 @@ app.include_router(api_v2_trades_router)
 app.include_router(api_v2_risk_v2_router)
 
 
+@app.get("/ping", tags=["health"], summary="Railway liveness probe")
+def ping() -> dict[str, str]:
+    """Minimal liveness route with no database or provider dependency."""
+
+    logger.info("ping called", extra={"event": "ping", "path": "/ping"})
+    return {"status": "ok"}
+
+
 @app.get("/", include_in_schema=False)
 def dashboard() -> FileResponse:
     return FileResponse(STATIC_DIR / "index.html")
@@ -309,7 +355,12 @@ def run() -> None:
     """Launch the dashboard through the `nexo-dashboard` console command."""
     import uvicorn
 
-    uvicorn.run("ui.dashboard:app", host="127.0.0.1", port=8000, reload=False)
+    port = int(os.environ.get("PORT", 8080))
+    logger.info(
+        "launching uvicorn",
+        extra={"event": "server_launch", "path": f"0.0.0.0:{port}"},
+    )
+    uvicorn.run(app, host="0.0.0.0", port=port, reload=False)
 
 
 if __name__ == "__main__":

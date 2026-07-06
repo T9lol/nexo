@@ -748,14 +748,16 @@ class RuntimeDashboardProvider:
 # ---------------------------------------------------------------------------
 
 
-def build_provider(name: str | None = None) -> DashboardProvider:
+def build_provider(
+    name: str | None = None, *, seed_evaluator: bool = True
+) -> DashboardProvider:
     """Build a provider. Defaults to the real runtime; ``mock`` opts into the
     deterministic UI-1 demo (via ``NEXO_DASHBOARD_PROVIDER`` or ``name``)."""
     choice = (name or os.environ.get("NEXO_DASHBOARD_PROVIDER") or "runtime").lower()
     if choice == "mock":
         return MockDashboardProvider()
     if choice == "runtime":
-        return RuntimeDashboardProvider()
+        return RuntimeDashboardProvider(seed_evaluator=seed_evaluator)
     raise ValueError(
         f"Unknown dashboard provider: {choice!r} (expected 'runtime' or 'mock')"
     )

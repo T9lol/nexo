@@ -52,7 +52,20 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    connectable = create_engine(_database_url(), poolclass=pool.NullPool, future=True)
+    url = _database_url()
+    timeout = get_settings().db_connect_timeout_seconds
+    if url.startswith("sqlite"):
+        connect_args = {"timeout": timeout}
+    elif url.startswith("postgresql"):
+        connect_args = {"connect_timeout": timeout}
+    else:
+        connect_args = {}
+    connectable = create_engine(
+        url,
+        poolclass=pool.NullPool,
+        future=True,
+        connect_args=connect_args,
+    )
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
