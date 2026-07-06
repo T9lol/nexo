@@ -8,10 +8,7 @@ import {
   CardTitle,
   Input,
 } from '@/components/ui';
-import {
-  PLACEHOLDER_USD_MYR_RATE,
-  type FxPreference,
-} from '@/services';
+import { PLACEHOLDER_USD_MYR_RATE, type FxPreference } from '@/services';
 
 interface CurrencyCardProps {
   fx: FxPreference;
@@ -47,7 +44,11 @@ export function CurrencyCard({ fx, onChange }: CurrencyCardProps) {
           <span className="text-sm font-medium text-foreground">
             Exchange rate (USD → MYR)
           </span>
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Exchange rate mode">
+          <div
+            className="flex flex-wrap gap-2"
+            role="group"
+            aria-label="Exchange rate mode"
+          >
             <Button
               variant={!manual ? 'primary' : 'outline'}
               size="sm"
@@ -75,7 +76,10 @@ export function CurrencyCard({ fx, onChange }: CurrencyCardProps) {
 
           {manual ? (
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="fx-rate" className="text-xs text-muted-foreground">
+              <label
+                htmlFor="fx-rate"
+                className="text-xs text-muted-foreground"
+              >
                 Manual rate
               </label>
               <Input

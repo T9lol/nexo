@@ -80,11 +80,7 @@ export function BacktestMetricsPanel({
             tone="negative"
             hint="from equity curve"
           />
-          <MetricTile
-            label="CAGR"
-            unavailable
-            hint="No calendar time basis"
-          />
+          <MetricTile label="CAGR" unavailable hint="No calendar time basis" />
           <MetricTile
             label="Sharpe Ratio"
             unavailable

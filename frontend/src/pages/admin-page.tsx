@@ -109,7 +109,11 @@ export default function AdminPage() {
         </div>
       </Card>
 
-      <SystemHealthCard health={health} loading={loading} error={disconnected} />
+      <SystemHealthCard
+        health={health}
+        loading={loading}
+        error={disconnected}
+      />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {UNAVAILABLE_PANELS.map((panel) => (

@@ -36,7 +36,9 @@ export function readLocalSettings(): LocalSettings {
   }
 }
 
-export function writeLocalSettings(patch: Partial<LocalSettings>): LocalSettings {
+export function writeLocalSettings(
+  patch: Partial<LocalSettings>,
+): LocalSettings {
   const next = { ...readLocalSettings(), ...patch };
   try {
     window.localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(next));

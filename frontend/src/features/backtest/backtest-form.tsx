@@ -85,7 +85,10 @@ export function BacktestForm({
           </Select>
         </Field>
 
-        <Field label="Asset" hint="Backend reference backtest runs on BTC only.">
+        <Field
+          label="Asset"
+          hint="Backend reference backtest runs on BTC only."
+        >
           <Select value="BTC" disabled>
             <SelectTrigger aria-label="Asset">
               <SelectValue />
@@ -107,7 +110,12 @@ export function BacktestForm({
         </Field>
 
         <Field label="Initial Capital" hint="Fixed at $10,000 by the backend.">
-          <Input aria-label="Initial capital" value="$10,000.00" disabled readOnly />
+          <Input
+            aria-label="Initial capital"
+            value="$10,000.00"
+            disabled
+            readOnly
+          />
         </Field>
 
         <Button onClick={onRun} loading={running} className="mt-1 w-full">

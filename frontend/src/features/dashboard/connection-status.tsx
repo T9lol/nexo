@@ -27,10 +27,7 @@ const PRESENTATION: Record<
   },
 };
 
-function resolveKind(
-  status: AsyncStatus,
-  error: Error | null,
-): ConnectionKind {
+function resolveKind(status: AsyncStatus, error: Error | null): ConnectionKind {
   if (status === 'error') return 'disconnected';
   if (status === 'loading') return 'connecting';
   return error ? 'stale' : 'live';

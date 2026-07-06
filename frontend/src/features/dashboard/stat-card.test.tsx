@@ -12,7 +12,11 @@ describe('StatCard', () => {
 
   it('renders an honest unavailable placeholder', () => {
     render(
-      <StatCard label="Today's PnL" unavailable unavailableHint="Pending endpoint" />,
+      <StatCard
+        label="Today's PnL"
+        unavailable
+        unavailableHint="Pending endpoint"
+      />,
     );
     expect(screen.getByText('Pending endpoint')).toBeInTheDocument();
   });

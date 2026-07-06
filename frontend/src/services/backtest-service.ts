@@ -42,7 +42,9 @@ export function runConfigurableBacktest(
 /** Placeholder for a future server-side report export endpoint. */
 export function exportBacktestReportViaBackend(): Promise<Blob> {
   return Promise.reject(
-    new Error('Server-side backtest report export is not available in this build.'),
+    new Error(
+      'Server-side backtest report export is not available in this build.',
+    ),
   );
 }
 

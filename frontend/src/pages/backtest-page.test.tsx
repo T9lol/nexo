@@ -25,7 +25,15 @@ const BACKTEST_SNAPSHOT: DashboardState = {
   selected_strategy: 'A',
   strategies: { A: { score: 1, weight: 1, updates: 1, adaptive: 1 } },
   trades: [
-    { id: 'bt-1', time: new Date().toISOString(), strategy: 'A', action: 'BUY', symbol: 'BTC', price: 98, amount: 1 },
+    {
+      id: 'bt-1',
+      time: new Date().toISOString(),
+      strategy: 'A',
+      action: 'BUY',
+      symbol: 'BTC',
+      price: 98,
+      amount: 1,
+    },
   ],
   equity_curve: [
     { time: new Date(Date.now() - 2000).toISOString(), value: 100 },
@@ -65,7 +73,9 @@ describe('BacktestPage', () => {
 
     // Before running: empty state + disabled export.
     expect(await screen.findByText('No backtest run yet')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Export report' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Export report' }),
+    ).toBeDisabled();
 
     await userEvent.click(screen.getByRole('button', { name: /Run Backtest/ }));
 
@@ -73,8 +83,12 @@ describe('BacktestPage', () => {
     expect(
       await screen.findByRole('heading', { name: 'Performance Metrics' }),
     ).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Equity Curve' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Drawdown' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Equity Curve' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Drawdown' }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'Backtest Trades' }),
     ).toBeInTheDocument();

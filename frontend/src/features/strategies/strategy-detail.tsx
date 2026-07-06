@@ -126,7 +126,10 @@ export function StrategyDetail({
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <MetricTile label="Cumulative Reward" value={signed(strategy.score)} />
+              <MetricTile
+                label="Cumulative Reward"
+                value={signed(strategy.score)}
+              />
               <MetricTile
                 label="Adaptive Weight"
                 value={strategy.weight.toFixed(4)}
@@ -137,8 +140,16 @@ export function StrategyDetail({
                 value={strategy.trades}
                 hint="from recent trade feed"
               />
-              <MetricTile label="PnL" unavailable hint="No per-strategy endpoint" />
-              <MetricTile label="Win Rate" unavailable hint="No per-strategy endpoint" />
+              <MetricTile
+                label="PnL"
+                unavailable
+                hint="No per-strategy endpoint"
+              />
+              <MetricTile
+                label="Win Rate"
+                unavailable
+                hint="No per-strategy endpoint"
+              />
               <MetricTile
                 label="Max Drawdown"
                 unavailable

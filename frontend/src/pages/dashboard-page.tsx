@@ -80,7 +80,11 @@ export default function DashboardPage() {
           rate={rate}
           loading={loading}
         />
-        <PnlCard label="Today's PnL" period={pnl?.today} loading={loading || !pnl} />
+        <PnlCard
+          label="Today's PnL"
+          period={pnl?.today}
+          loading={loading || !pnl}
+        />
         <PnlCard
           label="Monthly PnL"
           period={pnl?.month}

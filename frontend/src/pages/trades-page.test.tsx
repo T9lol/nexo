@@ -42,7 +42,9 @@ describe('TradesPage', () => {
   });
 
   it('renders a paginated table with badges, unavailable fee/PnL, and export', async () => {
-    stubFetch((url) => (url.includes('/api/trades') ? TRADES : { status: 'ok' }));
+    stubFetch((url) =>
+      url.includes('/api/trades') ? TRADES : { status: 'ok' },
+    );
     renderPage();
 
     // Badges + status.
@@ -60,7 +62,9 @@ describe('TradesPage', () => {
   });
 
   it('advances to the next page', async () => {
-    stubFetch((url) => (url.includes('/api/trades') ? TRADES : { status: 'ok' }));
+    stubFetch((url) =>
+      url.includes('/api/trades') ? TRADES : { status: 'ok' },
+    );
     renderPage();
 
     await screen.findByText('Showing 1–10 of 12');
@@ -69,7 +73,9 @@ describe('TradesPage', () => {
   });
 
   it('filters via the search box', async () => {
-    stubFetch((url) => (url.includes('/api/trades') ? TRADES : { status: 'ok' }));
+    stubFetch((url) =>
+      url.includes('/api/trades') ? TRADES : { status: 'ok' },
+    );
     renderPage();
 
     const search = await screen.findByLabelText('Search trades');

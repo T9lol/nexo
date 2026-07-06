@@ -7,7 +7,16 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, invalid, type = 'text', 'aria-invalid': ariaInvalid, ...props }, ref) => (
+  (
+    {
+      className,
+      invalid,
+      type = 'text',
+      'aria-invalid': ariaInvalid,
+      ...props
+    },
+    ref,
+  ) => (
     <input
       ref={ref}
       type={type}

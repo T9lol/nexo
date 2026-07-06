@@ -16,7 +16,11 @@ interface SystemInfoCardProps {
   error?: boolean;
 }
 
-export function SystemInfoCard({ health, loading, error }: SystemInfoCardProps) {
+export function SystemInfoCard({
+  health,
+  loading,
+  error,
+}: SystemInfoCardProps) {
   return (
     <Card>
       <CardHeader>
@@ -33,10 +37,7 @@ export function SystemInfoCard({ health, loading, error }: SystemInfoCardProps) 
           <div className="grid grid-cols-2 gap-3">
             <InfoTile label="Application" value={APP_NAME} />
             <InfoTile label="Frontend version" value={APP_VERSION} />
-            <InfoTile
-              label="Environment"
-              value={health?.environment ?? '—'}
-            />
+            <InfoTile label="Environment" value={health?.environment ?? '—'} />
             <InfoTile label="Runtime mode" value={health?.mode ?? '—'} />
             <InfoTile
               label="Backend"

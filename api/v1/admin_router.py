@@ -9,7 +9,7 @@ no records are ever fabricated.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, NoReturn
 
 from fastapi import APIRouter, Depends, Path, Query
 from pydantic import BaseModel
@@ -51,7 +51,7 @@ def _unavailable_list(kind: str, status: str | None = None) -> dict[str, Any]:
     }
 
 
-def _not_available(operation: str) -> None:
+def _not_available(operation: str) -> NoReturn:
     raise AppError(
         f"{operation} is not available in this build; no backend is configured.",
         code="not_available",
@@ -89,7 +89,6 @@ def decide_kyc(
     _admin: Principal = Depends(require_admin),
 ) -> dict[str, Any]:
     _not_available("KYC decisioning")
-    return {}  # pragma: no cover
 
 
 # --- Deposit / withdrawal approval ------------------------------------------
@@ -114,7 +113,6 @@ def decide_deposit(
     _admin: Principal = Depends(require_admin),
 ) -> dict[str, Any]:
     _not_available("Deposit decisioning")
-    return {}  # pragma: no cover
 
 
 @router.get("/withdrawals", summary="Withdrawal approval", response_model=SuccessResponse, responses=_ADMIN_RESPONSES)
@@ -136,7 +134,6 @@ def decide_withdrawal(
     _admin: Principal = Depends(require_admin),
 ) -> dict[str, Any]:
     _not_available("Withdrawal decisioning")
-    return {}  # pragma: no cover
 
 
 # --- Audit logs (real, from the structured-log buffer) ----------------------

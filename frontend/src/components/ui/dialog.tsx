@@ -60,9 +60,7 @@ export function DialogHeader({
   className,
   ...props
 }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn('flex flex-col gap-1.5', className)} {...props} />
-  );
+  return <div className={cn('flex flex-col gap-1.5', className)} {...props} />;
 }
 
 export function DialogFooter({

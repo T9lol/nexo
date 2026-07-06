@@ -72,10 +72,7 @@ export default function TradesPage() {
   };
 
   const handleExport = () => {
-    const stamp = new Date()
-      .toISOString()
-      .slice(0, 19)
-      .replace(/[:T]/g, '-');
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
     downloadCsv(`nexo-trades-${stamp}.csv`, tradesToCsv(filtered));
   };
 

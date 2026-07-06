@@ -76,7 +76,7 @@ export const TableCell = forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn('px-3 py-2.5 align-middle tabular', className)}
+    className={cn('tabular px-3 py-2.5 align-middle', className)}
     {...props}
   />
 ));

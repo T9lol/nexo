@@ -2,7 +2,9 @@ import { apiFetch } from '@/lib/api-client';
 import type { DashboardState, Trade } from './types';
 
 /** Existing backend endpoint: full dashboard state snapshot. */
-export function getDashboardState(signal?: AbortSignal): Promise<DashboardState> {
+export function getDashboardState(
+  signal?: AbortSignal,
+): Promise<DashboardState> {
   return apiFetch<DashboardState>('/api/state', { signal });
 }
 

@@ -1,9 +1,9 @@
 {
   "name": "nexo-frontend",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
-  "description": "NeXo quantitative trading terminal — frontend foundation (Sprint 1)",
+  "description": "NeXo quantitative trading terminal — React frontend",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",

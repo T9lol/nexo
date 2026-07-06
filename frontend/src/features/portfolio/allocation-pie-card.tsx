@@ -51,7 +51,10 @@ interface AllocationPieCardProps {
   loading?: boolean;
 }
 
-export function AllocationPieCard({ holdings, loading }: AllocationPieCardProps) {
+export function AllocationPieCard({
+  holdings,
+  loading,
+}: AllocationPieCardProps) {
   const slices: AllocationSlice[] = holdings
     .filter((holding) => holding.valueUsd > 0)
     .map((holding) => ({

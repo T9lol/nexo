@@ -1,16 +1,28 @@
-# NeXo — Event-Driven Modular Trading System
+# NeXo — Event-Driven Modular Trading Terminal
 
 [![tests](https://github.com/kriswu5240-collab/nexo/actions/workflows/tests.yml/badge.svg)](https://github.com/kriswu5240-collab/nexo/actions/workflows/tests.yml)
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.1.0-4C1)
-![Dependencies](https://img.shields.io/badge/runtime_dependencies-0-success)
+![React](https://img.shields.io/badge/react-18-149ECA?logo=react&logoColor=white)
+![Version](https://img.shields.io/badge/version-1.0.0-4C1)
 
-NeXo is a modular quantitative-trading simulator built to demonstrate how an
-event-driven system coordinates market data, multiple strategies, risk controls,
-order execution, portfolio state, backtesting, and adaptive strategy selection.
+NeXo is a modular quantitative-trading terminal: an event-driven Python engine,
+a production-ready **FastAPI REST API**, and a **React + TypeScript** web
+frontend. The engine coordinates market data, multiple strategies, risk
+controls, order execution, portfolio state, backtesting, and adaptive strategy
+selection; the API exposes it under a versioned, standardized contract; the
+frontend renders it as a full trading terminal.
 
-It is not just a trading bot. It is a small, testable system-design project in
-which each layer has one responsibility and communicates through explicit events.
+It is not just a trading bot. It is a testable, layered system-design project in
+which each layer has one responsibility and communicates through explicit
+contracts — from the internal event bus up to the HTTP API and the UI.
+
+> **v1.0.0** — first unified release of the engine, the `/api/v1` REST API
+> (Dashboard, Portfolio, Strategy, Trade History, Backtest, Risk, Settings, and
+> Admin modules), and the React terminal frontend. See
+> [CHANGELOG.md](CHANGELOG.md).
+
+> **Scope:** NeXo is an educational research simulator. It does not connect to an
+> exchange, place real orders, or provide financial advice.
 
 ## 30-second overview
 
@@ -27,21 +39,68 @@ py -3 main.py --mode backtest
 py -3 main.py --mode live --duration 10 --seed 42
 ```
 
-## Dashboard (UI-1)
+## NeXo Terminal — Web App & REST API
 
-Install the optional product layer and launch the local dashboard:
+The v1.0.0 product is a two-tier web application over the engine:
+
+- **Backend** — a FastAPI app that preserves the legacy engine and adds a
+  versioned `/api/v1` surface with standardized success/error envelopes, request
+  validation, global exception handling, structured logging, an in-memory audit
+  trail, CORS, OpenAPI docs, and **JWT-ready authentication with User/Admin
+  RBAC**. The API only ever *reads and controls the real engine* — it never
+  fabricates trading data.
+- **Frontend** — a React 18 + TypeScript (Vite) single-page terminal with eight
+  modules: Dashboard, Portfolio, Strategy Center, Trade History, Backtest Center,
+  Risk Center, Settings, and Admin Console. RM (MYR) is the primary currency with
+  an approximate USD conversion.
+
+### Run the backend API
 
 ```powershell
 py -3 -m pip install -e ".[dashboard]"
-py -3 -m uvicorn ui.dashboard:app --reload
+py -3 -m uvicorn ui.dashboard:app --reload --port 8002
 ```
 
-Open `http://127.0.0.1:8000`. The UI-1 dashboard includes a live equity curve,
-portfolio allocation, simulated executions, and adaptive strategy state. It uses
-a deterministic mock provider; connecting it to the NeXo engine is the UI-2 scope.
+Open **http://127.0.0.1:8002/docs** for interactive OpenAPI documentation. The
+default provider is the real runtime engine; set `NEXO_DASHBOARD_PROVIDER=mock`
+for a deterministic demo.
 
-> **Scope:** NeXo is an educational research simulator. It does not connect to
-> an exchange, place real orders, or provide financial advice.
+### Run the frontend
+
+```bash
+cd frontend
+pnpm install
+pnpm dev            # http://localhost:5173 (proxies /api to the backend)
+```
+
+Set `VITE_API_PROXY_TARGET` if the backend runs somewhere other than
+`http://127.0.0.1:8002`.
+
+### API surface (`/api/v1`)
+
+| Module | Base path | Highlights |
+|---|---|---|
+| Health | `/api/v1/health` | Public liveness probe |
+| Dashboard | `/api/v1/dashboard` | Summary, equity curve, recent trades |
+| Portfolio | `/api/v1/portfolio` | Summary, holdings, allocation, value history, asset details |
+| Strategy Center | `/api/v1/strategies` | List, details, comparison, enable/disable* |
+| Trade History | `/api/v1/trade-history` | Filtering, pagination, details, CSV export |
+| Backtest Center | `/api/v1/backtest` | Run*, status, equity curve, drawdown, metrics, trades, CSV report |
+| Risk Center | `/api/v1/risk` | Overview, exposure, config, alerts, emergency stop*, save settings* |
+| Settings | `/api/v1/settings` | Profile, theme, language, currency, exchange rate*, notifications, API keys, system info |
+| Admin Console | `/api/v1/admin` | Users, KYC, deposits, withdrawals, audit logs, system health, feature flags, maintenance (**admin RBAC**) |
+
+`*` = mutation; requires an authenticated user (or admin) when a JWT secret is
+configured via `NEXO_JWT_SECRET`. Capabilities without a backend (e.g. user
+records, KYC, notification delivery, API-key issuance) return honest
+unavailable/empty states rather than fabricated data.
+
+### Screenshots
+
+Screenshots of the running terminal (Dashboard, Portfolio, Strategy Center,
+Risk Center, Settings, and Admin Console) are collected in
+[`docs/screenshots/`](docs/screenshots/), which also documents how to regenerate
+them from a running dev server.
 
 ## Why I built it
 
@@ -189,6 +248,7 @@ market update interval.
 
 ```text
 nexo/
+├── api/               # v1 REST API: config, logging, errors, security, v1 routers
 ├── backtest/          # Historical replay and deterministic sample data
 ├── core/              # Event bus and simulated market-data feed
 ├── execution/         # Execution and pre-trade risk engines
@@ -196,29 +256,44 @@ nexo/
 ├── observability/     # Console logging and alerts
 ├── state/             # Portfolio and performance analytics
 ├── strategies/        # Strategy interface and implementations
-├── tests/              # Standard-library unittest suite
-├── main.py             # CLI composition root
-└── pyproject.toml      # Package metadata and CLI entry point
+├── ui/                # FastAPI app, providers, and legacy static dashboard
+├── frontend/          # React + TypeScript (Vite) terminal frontend
+├── tests/             # unittest suite (engine + API)
+├── docs/              # SDS, product spec, and screenshots
+├── main.py            # CLI composition root
+└── pyproject.toml     # Package metadata and CLI entry point
 ```
 
 ## Installation and tests
 
-Requirements: Python 3.10 or newer. There are no third-party runtime dependencies.
+Requirements: Python 3.10+ for the engine/API; Node.js 18+ and pnpm for the
+frontend. The engine core has no third-party runtime dependencies; the API adds
+FastAPI, Uvicorn, and PyJWT (the `dashboard` extra).
 
 ```bash
 git clone https://github.com/kriswu5240-collab/nexo.git
 cd nexo
+
+# Engine + API
+python -m pip install -e ".[dashboard,test]"
 python -m unittest discover -s tests -v
+
+# Frontend
+cd frontend
+pnpm install
+pnpm typecheck && pnpm lint && pnpm test && pnpm build
 ```
 
 On Windows, `py -3` may be used instead of `python`.
 
-The test suite covers:
+The test suites cover:
 
-- event publication and subscription
-- successful execution and position-limit rejection
-- deterministic Strategy A backtest results
-- reward updates and winner-only strategy routing
+- **Engine** — event publish/subscribe, execution and position-limit rejection,
+  deterministic backtest results, reward updates and winner-only routing
+- **API** — versioned routes and legacy compatibility, standardized envelopes,
+  JWT auth and RBAC, per-module derivations (dashboard, portfolio, strategy,
+  trade history, backtest, risk, settings, admin), maintenance mode, and OpenAPI
+- **Frontend** — routing, pages, services, and component behavior (Vitest)
 
 ## Adding a strategy
 

@@ -1,7 +1,18 @@
-import { Coins, Landmark, TrendingDown, TrendingUp, Wallet } from 'lucide-react';
+import {
+  Coins,
+  Landmark,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+} from 'lucide-react';
 import { StatCard } from '@/features/dashboard/stat-card';
 import { cn } from '@/lib/cn';
-import { formatMYR, formatSignedUSD, formatUSD, usdToMyr } from '@/lib/currency';
+import {
+  formatMYR,
+  formatSignedUSD,
+  formatUSD,
+  usdToMyr,
+} from '@/lib/currency';
 import type { ExchangeRate } from '@/services';
 import type { PortfolioSummary } from './portfolio-model';
 
@@ -20,7 +31,8 @@ function weightLabel(value: number, total: number): string {
 export function AssetSummary({ summary, rate, loading }: AssetSummaryProps) {
   const hasData = !!summary;
   const busy = loading || !hasData;
-  const totalMyr = summary && rate ? usdToMyr(summary.totalUsd, rate.rate) : null;
+  const totalMyr =
+    summary && rate ? usdToMyr(summary.totalUsd, rate.rate) : null;
   const pnl = summary?.pnlUsd ?? 0;
   const pnlPositive = pnl >= 0;
 
@@ -32,7 +44,9 @@ export function AssetSummary({ summary, rate, loading }: AssetSummaryProps) {
         icon={Wallet}
         loading={busy}
         value={
-          totalMyr != null ? formatMYR(totalMyr) : formatUSD(summary?.totalUsd ?? 0)
+          totalMyr != null
+            ? formatMYR(totalMyr)
+            : formatUSD(summary?.totalUsd ?? 0)
         }
         sub={
           summary ? (

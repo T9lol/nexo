@@ -74,9 +74,7 @@ describe('AdminPage', () => {
       'Feature Flags',
       'Maintenance Mode',
     ]) {
-      expect(
-        screen.getByRole('heading', { name: title }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: title })).toBeInTheDocument();
     }
     expect(screen.getAllByText('Unavailable')).toHaveLength(7);
   });

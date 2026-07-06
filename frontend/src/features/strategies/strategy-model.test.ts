@@ -15,9 +15,33 @@ function makeState(overrides?: Partial<DashboardState>): DashboardState {
       B: { score: 20, weight: 1.0, updates: 5, adaptive: 20 },
     },
     trades: [
-      { id: '1', time: 't', strategy: 'A', action: 'BUY', symbol: 'BTC', price: 1, amount: 1 },
-      { id: '2', time: 't', strategy: 'A', action: 'SELL', symbol: 'BTC', price: 1, amount: 1 },
-      { id: '3', time: 't', strategy: 'B', action: 'BUY', symbol: 'BTC', price: 1, amount: 1 },
+      {
+        id: '1',
+        time: 't',
+        strategy: 'A',
+        action: 'BUY',
+        symbol: 'BTC',
+        price: 1,
+        amount: 1,
+      },
+      {
+        id: '2',
+        time: 't',
+        strategy: 'A',
+        action: 'SELL',
+        symbol: 'BTC',
+        price: 1,
+        amount: 1,
+      },
+      {
+        id: '3',
+        time: 't',
+        strategy: 'B',
+        action: 'BUY',
+        symbol: 'BTC',
+        price: 1,
+        amount: 1,
+      },
     ],
     equity_curve: [],
     control: {
@@ -28,7 +52,10 @@ function makeState(overrides?: Partial<DashboardState>): DashboardState {
       position_limit_enabled: true,
       mode: 'live',
       environment: 'local-simulation',
-      allowed: { strategy_policy: ['auto', 'A', 'B'], mode: ['live', 'backtest'] },
+      allowed: {
+        strategy_policy: ['auto', 'A', 'B'],
+        mode: ['live', 'backtest'],
+      },
     },
     ...overrides,
   };

@@ -9,9 +9,33 @@ import {
 } from './trade-model';
 
 const TRADES: Trade[] = [
-  { id: '1', time: '2026-07-01T12:00:00Z', strategy: 'A', action: 'BUY', symbol: 'BTC', price: 100, amount: 1 },
-  { id: '2', time: '2026-07-10T12:00:00Z', strategy: 'B', action: 'SELL', symbol: 'ETH', price: 50, amount: 2 },
-  { id: '3', time: '2026-07-20T12:00:00Z', strategy: 'A', action: 'BUY', symbol: 'BTC', price: 110, amount: 1 },
+  {
+    id: '1',
+    time: '2026-07-01T12:00:00Z',
+    strategy: 'A',
+    action: 'BUY',
+    symbol: 'BTC',
+    price: 100,
+    amount: 1,
+  },
+  {
+    id: '2',
+    time: '2026-07-10T12:00:00Z',
+    strategy: 'B',
+    action: 'SELL',
+    symbol: 'ETH',
+    price: 50,
+    amount: 2,
+  },
+  {
+    id: '3',
+    time: '2026-07-20T12:00:00Z',
+    strategy: 'A',
+    action: 'BUY',
+    symbol: 'BTC',
+    price: 110,
+    amount: 1,
+  },
 ];
 
 describe('uniqueAssets', () => {
@@ -69,7 +93,9 @@ describe('tradesToCsv', () => {
   it('includes real fields and marks fee/PnL as N/A', () => {
     const csv = tradesToCsv(TRADES);
     const lines = csv.split('\n');
-    expect(lines[0]).toContain('Date/Time,Side,Asset,Quantity,Price,Fee,Realized PnL,Status');
+    expect(lines[0]).toContain(
+      'Date/Time,Side,Asset,Quantity,Price,Fee,Realized PnL,Status',
+    );
     expect(lines).toHaveLength(4);
     expect(lines[1]).toContain('BUY');
     expect(lines[1]).toContain('BTC');

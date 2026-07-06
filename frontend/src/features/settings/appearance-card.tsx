@@ -36,7 +36,9 @@ export function AppearanceCard({
     <Card>
       <CardHeader>
         <CardTitle>Appearance & Language</CardTitle>
-        <CardDescription>Theme is applied and remembered on this device.</CardDescription>
+        <CardDescription>
+          Theme is applied and remembered on this device.
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         <div className="flex flex-col gap-2">
@@ -66,7 +68,11 @@ export function AppearanceCard({
             Language
           </label>
           <Select value={language} onValueChange={onLanguageChange}>
-            <SelectTrigger id="language" className="sm:w-[200px]" aria-label="Language">
+            <SelectTrigger
+              id="language"
+              className="sm:w-[200px]"
+              aria-label="Language"
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

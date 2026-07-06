@@ -133,7 +133,9 @@ export default function RiskPage() {
           <EmergencyStopCard
             tradingEnabled={overview?.tradingEnabled ?? true}
             pending={pending}
-            onSetTrading={(enabled) => void runControl(() => setTrading(enabled))}
+            onSetTrading={(enabled) =>
+              void runControl(() => setTrading(enabled))
+            }
           />
         </div>
         <div className="min-w-0 lg:col-span-2">

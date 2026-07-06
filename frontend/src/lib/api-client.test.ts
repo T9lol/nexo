@@ -20,7 +20,9 @@ describe('apiFetch', () => {
   it('throws an ApiError with the status on a non-ok response', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: false, status: 503, json: async () => ({}) }),
+      vi
+        .fn()
+        .mockResolvedValue({ ok: false, status: 503, json: async () => ({}) }),
     );
     await expect(apiFetch('/x')).rejects.toMatchObject({
       name: 'ApiError',

@@ -39,7 +39,10 @@ const SAMPLE_STATE: DashboardState = {
     position_limit_enabled: true,
     mode: 'live',
     environment: 'local-simulation',
-    allowed: { strategy_policy: ['auto', 'A', 'B'], mode: ['live', 'backtest'] },
+    allowed: {
+      strategy_policy: ['auto', 'A', 'B'],
+      mode: ['live', 'backtest'],
+    },
   },
 };
 
@@ -68,7 +71,9 @@ describe('PortfolioPage', () => {
   });
 
   it('renders holdings, allocation, value, and detail from real state', async () => {
-    stubFetch((url) => (url.includes('/api/state') ? SAMPLE_STATE : { status: 'ok' }));
+    stubFetch((url) =>
+      url.includes('/api/state') ? SAMPLE_STATE : { status: 'ok' },
+    );
     renderPage();
 
     // Total value in RM (summary).
@@ -91,7 +96,9 @@ describe('PortfolioPage', () => {
   });
 
   it('filters holdings via the search box', async () => {
-    stubFetch((url) => (url.includes('/api/state') ? SAMPLE_STATE : { status: 'ok' }));
+    stubFetch((url) =>
+      url.includes('/api/state') ? SAMPLE_STATE : { status: 'ok' },
+    );
     renderPage();
 
     const search = await screen.findByLabelText('Search holdings');

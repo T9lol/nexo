@@ -5,8 +5,7 @@ import { cn } from '@/lib/cn';
 import { buttonVariants, type ButtonVariantProps } from './button-variants';
 
 export interface ButtonProps
-  extends ButtonHTMLAttributes<HTMLButtonElement>,
-    ButtonVariantProps {
+  extends ButtonHTMLAttributes<HTMLButtonElement>, ButtonVariantProps {
   /** Render as the single child element (e.g. an anchor), merging styles. */
   asChild?: boolean;
   loading?: boolean;

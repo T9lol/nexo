@@ -67,7 +67,7 @@ export function StatCard({
           <>
             <div
               className={cn(
-                'font-semibold tracking-tight tabular',
+                'tabular font-semibold tracking-tight',
                 hero ? 'text-3xl' : 'text-2xl',
               )}
             >

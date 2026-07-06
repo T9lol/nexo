@@ -39,7 +39,9 @@ export function RiskOverviewCards({
         icon={Landmark}
         loading={busy}
         value={formatUSD(overview?.cash ?? 0)}
-        sub={overview ? `${overview.cashPct.toFixed(0)}% of portfolio` : undefined}
+        sub={
+          overview ? `${overview.cashPct.toFixed(0)}% of portfolio` : undefined
+        }
       />
       <StatCard
         label="Trading Status"

@@ -1,4 +1,10 @@
-import { Badge, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui';
 import type { BadgeProps } from '@/components/ui';
 
 export type BacktestRunStatus = 'idle' | 'running' | 'complete' | 'error';

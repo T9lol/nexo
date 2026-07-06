@@ -1,5 +1,11 @@
 import { Lock, type LucideIcon } from 'lucide-react';
-import { Badge, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui';
 
 interface UnavailablePanelProps {
   icon: LucideIcon;

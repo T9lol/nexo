@@ -58,7 +58,9 @@ describe('derivePortfolio', () => {
 
   it('omits the asset holding when nothing is held', () => {
     const result = derivePortfolio(
-      makeState({ portfolio: { cash: 10000, asset: 0, equity: 10000, pnl: 0 } }),
+      makeState({
+        portfolio: { cash: 10000, asset: 0, equity: 10000, pnl: 0 },
+      }),
     );
     expect(result!.holdings).toHaveLength(1);
     expect(result!.holdings[0]!.kind).toBe('cash');
@@ -69,28 +71,44 @@ describe('filterHoldings', () => {
   const holdings = derivePortfolio(makeState())!.holdings;
 
   it('filters by free-text query', () => {
-    expect(filterHoldings(holdings, 'bit', 'all').map((h) => h.symbol)).toEqual([
-      'BTC',
-    ]);
-    expect(filterHoldings(holdings, 'usd', 'all').map((h) => h.symbol)).toEqual([
-      'USD',
-    ]);
+    expect(filterHoldings(holdings, 'bit', 'all').map((h) => h.symbol)).toEqual(
+      ['BTC'],
+    );
+    expect(filterHoldings(holdings, 'usd', 'all').map((h) => h.symbol)).toEqual(
+      ['USD'],
+    );
   });
 
   it('filters by kind', () => {
     expect(filterHoldings(holdings, '', 'cash').map((h) => h.symbol)).toEqual([
       'USD',
     ]);
-    expect(filterHoldings(holdings, '', 'crypto').map((h) => h.symbol)).toEqual([
-      'BTC',
-    ]);
+    expect(filterHoldings(holdings, '', 'crypto').map((h) => h.symbol)).toEqual(
+      ['BTC'],
+    );
   });
 });
 
 describe('tradesForSymbol', () => {
   const trades: Trade[] = [
-    { id: '1', time: 't', strategy: 'A', action: 'BUY', symbol: 'BTC', price: 1, amount: 1 },
-    { id: '2', time: 't', strategy: 'A', action: 'SELL', symbol: 'ETH', price: 1, amount: 1 },
+    {
+      id: '1',
+      time: 't',
+      strategy: 'A',
+      action: 'BUY',
+      symbol: 'BTC',
+      price: 1,
+      amount: 1,
+    },
+    {
+      id: '2',
+      time: 't',
+      strategy: 'A',
+      action: 'SELL',
+      symbol: 'ETH',
+      price: 1,
+      amount: 1,
+    },
   ];
 
   it('returns only matching-symbol trades', () => {

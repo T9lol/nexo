@@ -90,9 +90,9 @@ describe('RiskPage', () => {
     renderPage();
 
     // "Trading paused" appears both as an alert and the emergency-card badge.
-    expect((await screen.findAllByText('Trading paused')).length).toBeGreaterThan(
-      0,
-    );
+    expect(
+      (await screen.findAllByText('Trading paused')).length,
+    ).toBeGreaterThan(0);
     expect(
       screen.getByRole('button', { name: 'Resume Trading' }),
     ).toBeInTheDocument();
@@ -102,12 +102,16 @@ describe('RiskPage', () => {
     const mock = stubFetch(makeState());
     renderPage();
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Stop Trading' }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Stop Trading' }),
+    );
     // Confirmation dialog opens.
     expect(await screen.findByText('Stop all trading?')).toBeInTheDocument();
 
     const dialog = screen.getByRole('dialog');
-    await userEvent.click(within(dialog).getByRole('button', { name: 'Stop Trading' }));
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: 'Stop Trading' }),
+    );
 
     await waitFor(() =>
       expect(mock).toHaveBeenCalledWith(

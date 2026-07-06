@@ -25,15 +25,15 @@ pnpm dev          # start the dev server
 
 ## Scripts
 
-| Script            | Purpose                                  |
-| ----------------- | ---------------------------------------- |
-| `pnpm dev`        | Vite dev server                          |
-| `pnpm build`      | Type-check then production build         |
-| `pnpm preview`    | Preview the production build             |
-| `pnpm lint`       | ESLint                                   |
-| `pnpm typecheck`  | `tsc --noEmit` (strict)                  |
-| `pnpm test`       | Vitest run                               |
-| `pnpm format`     | Prettier write                           |
+| Script           | Purpose                          |
+| ---------------- | -------------------------------- |
+| `pnpm dev`       | Vite dev server                  |
+| `pnpm build`     | Type-check then production build |
+| `pnpm preview`   | Preview the production build     |
+| `pnpm lint`      | ESLint                           |
+| `pnpm typecheck` | `tsc --noEmit` (strict)          |
+| `pnpm test`      | Vitest run                       |
+| `pnpm format`    | Prettier write                   |
 
 ## Structure
 

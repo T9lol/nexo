@@ -38,7 +38,10 @@ const SAMPLE_STATE: DashboardState = {
     position_limit_enabled: true,
     mode: 'live',
     environment: 'local-simulation',
-    allowed: { strategy_policy: ['auto', 'A', 'B'], mode: ['live', 'backtest'] },
+    allowed: {
+      strategy_policy: ['auto', 'A', 'B'],
+      mode: ['live', 'backtest'],
+    },
   },
 };
 
@@ -67,13 +70,17 @@ describe('DashboardPage', () => {
   });
 
   it('renders live data from /api/state', async () => {
-    stubFetch((url) => (url.includes('/api/state') ? SAMPLE_STATE : { status: 'ok' }));
+    stubFetch((url) =>
+      url.includes('/api/state') ? SAMPLE_STATE : { status: 'ok' },
+    );
     renderDashboard();
 
     // Total Assets primary in RM (10025.5 × 4.7 placeholder rate).
     expect(await screen.findByText(/RM/)).toBeInTheDocument();
     // Active strategy resolved from state.
-    expect((await screen.findAllByText('Strategy A')).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText('Strategy A')).length).toBeGreaterThan(
+      0,
+    );
     // Recent trade rendered.
     expect(await screen.findByText('BUY')).toBeInTheDocument();
     // Chart + table titles present.

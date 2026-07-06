@@ -9,12 +9,7 @@ import {
   YAxis,
   type TooltipProps,
 } from 'recharts';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 import { formatUSD } from '@/lib/currency';
 import { useTheme } from '@/theme/theme-context';
 import type { DrawdownPoint } from './backtest-model';
@@ -95,7 +90,11 @@ export function BacktestEquityChart({ data }: { data: EquityPoint[] }) {
   const axis = cssToken('--muted-foreground', '#6b7280');
 
   const chartData = useMemo(
-    () => data.map((point) => ({ value: point.value, label: formatTime(point.time) })),
+    () =>
+      data.map((point) => ({
+        value: point.value,
+        label: formatTime(point.time),
+      })),
     [data],
   );
 
@@ -103,18 +102,45 @@ export function BacktestEquityChart({ data }: { data: EquityPoint[] }) {
     <ChartCard title="Equity Curve">
       <div className="h-full w-full" key={resolvedTheme}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
+          <AreaChart
+            data={chartData}
+            margin={{ top: 8, right: 8, bottom: 0, left: 8 }}
+          >
             <defs>
               <linearGradient id="btEquityFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={color} stopOpacity={0.24} />
                 <stop offset="100%" stopColor={color} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke={grid} vertical={false} />
-            <XAxis dataKey="label" tick={{ fontSize: 11, fill: axis }} tickLine={false} axisLine={false} minTickGap={40} />
-            <YAxis width={72} tick={{ fontSize: 11, fill: axis }} tickLine={false} axisLine={false} domain={['auto', 'auto']} tickFormatter={(value: number) => formatUSD(value)} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={grid}
+              vertical={false}
+            />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 11, fill: axis }}
+              tickLine={false}
+              axisLine={false}
+              minTickGap={40}
+            />
+            <YAxis
+              width={72}
+              tick={{ fontSize: 11, fill: axis }}
+              tickLine={false}
+              axisLine={false}
+              domain={['auto', 'auto']}
+              tickFormatter={(value: number) => formatUSD(value)}
+            />
             <Tooltip content={<EquityTooltip />} />
-            <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill="url(#btEquityFill)" isAnimationActive={false} />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke={color}
+              strokeWidth={2}
+              fill="url(#btEquityFill)"
+              isAnimationActive={false}
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -129,7 +155,11 @@ export function BacktestDrawdownChart({ data }: { data: DrawdownPoint[] }) {
   const axis = cssToken('--muted-foreground', '#6b7280');
 
   const chartData = useMemo(
-    () => data.map((point) => ({ value: point.value, label: formatTime(point.time) })),
+    () =>
+      data.map((point) => ({
+        value: point.value,
+        label: formatTime(point.time),
+      })),
     [data],
   );
 
@@ -137,18 +167,45 @@ export function BacktestDrawdownChart({ data }: { data: DrawdownPoint[] }) {
     <ChartCard title="Drawdown">
       <div className="h-full w-full" key={resolvedTheme}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
+          <AreaChart
+            data={chartData}
+            margin={{ top: 8, right: 8, bottom: 0, left: 8 }}
+          >
             <defs>
               <linearGradient id="btDrawdownFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={color} stopOpacity={0} />
                 <stop offset="100%" stopColor={color} stopOpacity={0.24} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke={grid} vertical={false} />
-            <XAxis dataKey="label" tick={{ fontSize: 11, fill: axis }} tickLine={false} axisLine={false} minTickGap={40} />
-            <YAxis width={56} tick={{ fontSize: 11, fill: axis }} tickLine={false} axisLine={false} domain={['auto', 0]} tickFormatter={(value: number) => formatPct(value)} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={grid}
+              vertical={false}
+            />
+            <XAxis
+              dataKey="label"
+              tick={{ fontSize: 11, fill: axis }}
+              tickLine={false}
+              axisLine={false}
+              minTickGap={40}
+            />
+            <YAxis
+              width={56}
+              tick={{ fontSize: 11, fill: axis }}
+              tickLine={false}
+              axisLine={false}
+              domain={['auto', 0]}
+              tickFormatter={(value: number) => formatPct(value)}
+            />
             <Tooltip content={<DrawdownTooltip />} />
-            <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill="url(#btDrawdownFill)" isAnimationActive={false} />
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke={color}
+              strokeWidth={2}
+              fill="url(#btDrawdownFill)"
+              isAnimationActive={false}
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>

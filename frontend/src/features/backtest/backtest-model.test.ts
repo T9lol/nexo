@@ -24,7 +24,15 @@ function makeState(): DashboardState {
     selected_strategy: 'A',
     strategies: { A: { score: 1, weight: 1, updates: 1, adaptive: 1 } },
     trades: [
-      { id: 'bt-1', time: '2026-07-06T00:00:01Z', strategy: 'A', action: 'BUY', symbol: 'BTC', price: 98, amount: 1 },
+      {
+        id: 'bt-1',
+        time: '2026-07-06T00:00:01Z',
+        strategy: 'A',
+        action: 'BUY',
+        symbol: 'BTC',
+        price: 98,
+        amount: 1,
+      },
     ],
     equity_curve: EQUITY,
     control: {
@@ -35,7 +43,10 @@ function makeState(): DashboardState {
       position_limit_enabled: true,
       mode: 'backtest',
       environment: 'local-simulation',
-      allowed: { strategy_policy: ['auto', 'A', 'B'], mode: ['live', 'backtest'] },
+      allowed: {
+        strategy_policy: ['auto', 'A', 'B'],
+        mode: ['live', 'backtest'],
+      },
     },
   };
 }

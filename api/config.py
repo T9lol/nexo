@@ -53,7 +53,7 @@ class Settings(BaseModel):
     """Immutable snapshot of API configuration."""
 
     app_name: str = "NeXo API"
-    app_version: str = "1.1.0"
+    app_version: str = "1.0.0"
     environment: str = "local"
 
     api_v1_prefix: str = "/api/v1"
@@ -100,7 +100,7 @@ def get_settings() -> Settings:
 
     return Settings(
         app_name=_env("APP_NAME", "NeXo API") or "NeXo API",
-        app_version=_env("APP_VERSION", "1.1.0") or "1.1.0",
+        app_version=_env("APP_VERSION", "1.0.0") or "1.0.0",
         environment=_env("ENV", "local") or "local",
         api_v1_prefix=_env("API_V1_PREFIX", "/api/v1") or "/api/v1",
         cors_origins=_env_list("CORS_ORIGINS"),

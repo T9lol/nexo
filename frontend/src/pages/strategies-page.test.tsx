@@ -16,8 +16,24 @@ const SAMPLE_STATE: DashboardState = {
     B: { score: 20, weight: 1.0, updates: 5, adaptive: 20 },
   },
   trades: [
-    { id: '1', time: new Date().toISOString(), strategy: 'A', action: 'BUY', symbol: 'BTC', price: 99, amount: 1 },
-    { id: '2', time: new Date().toISOString(), strategy: 'B', action: 'SELL', symbol: 'BTC', price: 101, amount: 1 },
+    {
+      id: '1',
+      time: new Date().toISOString(),
+      strategy: 'A',
+      action: 'BUY',
+      symbol: 'BTC',
+      price: 99,
+      amount: 1,
+    },
+    {
+      id: '2',
+      time: new Date().toISOString(),
+      strategy: 'B',
+      action: 'SELL',
+      symbol: 'BTC',
+      price: 101,
+      amount: 1,
+    },
   ],
   equity_curve: [],
   control: {
@@ -28,7 +44,10 @@ const SAMPLE_STATE: DashboardState = {
     position_limit_enabled: true,
     mode: 'live',
     environment: 'local-simulation',
-    allowed: { strategy_policy: ['auto', 'A', 'B'], mode: ['live', 'backtest'] },
+    allowed: {
+      strategy_policy: ['auto', 'A', 'B'],
+      mode: ['live', 'backtest'],
+    },
   },
 };
 
@@ -57,16 +76,22 @@ describe('StrategiesPage', () => {
   });
 
   it('lists strategies with metrics, detail, status, and comparison', async () => {
-    stubFetch((url) => (url.includes('/api/state') ? SAMPLE_STATE : { status: 'ok' }));
+    stubFetch((url) =>
+      url.includes('/api/state') ? SAMPLE_STATE : { status: 'ok' },
+    );
     renderPage();
 
     // Strategy list rows.
-    expect((await screen.findAllByText('Strategy A')).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText('Strategy A')).length).toBeGreaterThan(
+      0,
+    );
     expect(screen.getAllByText('Strategy B').length).toBeGreaterThan(0);
     // Status indicator (A is active).
     expect(screen.getAllByText('Active').length).toBeGreaterThan(0);
     // Card sections.
-    expect(screen.getByRole('heading', { name: 'Strategies' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Strategies' }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', { name: 'Strategy Detail' }),
     ).toBeInTheDocument();
@@ -78,7 +103,9 @@ describe('StrategiesPage', () => {
   });
 
   it('shows honest unavailable metrics and a disabled enable toggle', async () => {
-    stubFetch((url) => (url.includes('/api/state') ? SAMPLE_STATE : { status: 'ok' }));
+    stubFetch((url) =>
+      url.includes('/api/state') ? SAMPLE_STATE : { status: 'ok' },
+    );
     renderPage();
 
     // PnL / Win Rate / Max Drawdown are honestly unavailable.

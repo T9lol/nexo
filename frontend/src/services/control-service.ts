@@ -49,5 +49,9 @@ export function setPositionLimit(
   enabled: boolean,
   signal?: AbortSignal,
 ): Promise<ControlState> {
-  return postControl('/api/control/risk', { position_limit_enabled: enabled }, signal);
+  return postControl(
+    '/api/control/risk',
+    { position_limit_enabled: enabled },
+    signal,
+  );
 }

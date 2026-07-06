@@ -162,7 +162,11 @@ export function StrategyComparisonChart({
                   cursor={{ fill: 'hsl(var(--muted) / 0.4)' }}
                   content={<Tip />}
                 />
-                <Bar dataKey="value" radius={[4, 4, 0, 0]} isAnimationActive={false}>
+                <Bar
+                  dataKey="value"
+                  radius={[4, 4, 0, 0]}
+                  isAnimationActive={false}
+                >
                   {data.map((datum) => (
                     <Cell
                       key={datum.name}

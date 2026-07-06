@@ -70,7 +70,9 @@ export default function SettingsPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <ProfileCard
           displayName={settings.displayName}
-          onDisplayNameChange={(value) => updateSettings({ displayName: value })}
+          onDisplayNameChange={(value) =>
+            updateSettings({ displayName: value })
+          }
           environment={health?.environment ?? '—'}
         />
         <AppearanceCard
